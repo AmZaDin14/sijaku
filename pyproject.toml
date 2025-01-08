@@ -1,0 +1,12 @@
+[project]
+name = "sijaku"
+version = "0.1.0"
+description = "Sistem Penjadwalan Perkuliahan"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+  "cookiecutter>=2.6.0",
+  "django>=5.1.4",
+  "django-tailwind[reload]>=3.8.0",
+  "environs[django]>=14.0.0",
+]
