@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     "theme",
     "django_browser_reload",
     "sijaku",
+    "accounts",
 ]
 
 MIDDLEWARE = [
@@ -132,3 +133,7 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 NPM_BIN_PATH = "bun"  # Use Bun instead of NPM
 TAILWIND_APP_NAME = "theme"
 INTERNAL_IPS = ["*"]
+
+AUTH_USER_MODEL = 'accounts.CustomUser'
+LOGIN_REDIRECT_URL = '/dashboard/'
+LOGOUT_REDIRECT_URL = '/accounts/login/'
