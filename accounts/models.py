@@ -40,3 +40,11 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
 
     def __str__(self):
         return self.username
+
+    @property
+    def name(self):
+        if self.role == 'dosen' and hasattr(self, 'dosen') and self.dosen:
+            return self.dosen.nama
+        elif self.role =='staf' and hasattr(self, 'staf') and self.staf:
+            return self.staf.nama
+        return self.username

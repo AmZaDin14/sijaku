@@ -9,4 +9,4 @@ def index(request):
 @login_required
 def dashboard(request):
     if request.user.is_authenticated and request.user.role == 'admin': return redirect('/admin/')
-    return render(request, "sijaku/dashboard/index.html")
+    return render(request, "sijaku/dashboard/index.html", {'active_page': 'dashboard'})
