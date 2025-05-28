@@ -8,4 +8,9 @@ urlpatterns = [
     path('dashboard/admin/dosen/delete/<int:pk>/', views.dosen_delete, name='dosen_delete'),
     path('dashboard/admin/dosen/tambah/', views.dosen_create, name='dosen_create'),
     path('dashboard/admin/dosen/edit/<int:pk>/', views.dosen_update, name='dosen_update'),
+    # CRUD MataKuliah
+    path('dashboard/admin/matakuliah/', views.matakuliah_list, name='matakuliah_list'),
+    path('dashboard/admin/matakuliah/tambah/', views.matakuliah_create, name='matakuliah_create'),
+    path('dashboard/admin/matakuliah/edit/<int:pk>/', views.matakuliah_update, name='matakuliah_update'),
+    path('dashboard/admin/matakuliah/delete/<int:pk>/', views.matakuliah_delete, name='matakuliah_delete'),
 ]

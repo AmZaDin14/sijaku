@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from .models import Dosen, Jabatan
+from .models import Dosen, Jabatan, MataKuliah
 from .forms import DosenForm
 from django.urls import reverse
 from django.contrib import messages
@@ -92,3 +92,46 @@ def dosen_update(request, pk):
         'password_message': password_message,
         'password_error': password_error,
     })
+
+def matakuliah_list(request):
+    if not request.user.is_superuser:
+        return redirect('dashboard')
+    matakuliah = MataKuliah.objects.all()
+    return render(request, 'sijaku/dashboard/admin/matakuliah.html', {'matakuliah_list': matakuliah})
+
+def matakuliah_create(request):
+    if not request.user.is_superuser:
+        return redirect('dashboard')
+    if request.method == 'POST':
+        from .forms import MataKuliahForm
+        form = MataKuliahForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('matakuliah_list')
+    else:
+        from .forms import MataKuliahForm
+        form = MataKuliahForm()
+    return render(request, 'sijaku/dashboard/admin/matakuliah_form.html', {'form': form})
+
+def matakuliah_update(request, pk):
+    if not request.user.is_superuser:
+        return redirect('dashboard')
+    matakuliah = get_object_or_404(MataKuliah, pk=pk)
+    from .forms import MataKuliahForm
+    if request.method == 'POST':
+        form = MataKuliahForm(request.POST, instance=matakuliah)
+        if form.is_valid():
+            form.save()
+            return redirect('matakuliah_list')
+    else:
+        form = MataKuliahForm(instance=matakuliah)
+    return render(request, 'sijaku/dashboard/admin/matakuliah_form.html', {'form': form, 'edit': True, 'matakuliah': matakuliah})
+
+@require_http_methods(["POST"])
+def matakuliah_delete(request, pk):
+    if not request.user.is_superuser:
+        return redirect('dashboard')
+    matakuliah = get_object_or_404(MataKuliah, pk=pk)
+    matakuliah.delete()
+    messages.success(request, "Mata Kuliah berhasil dihapus.")
+    return redirect('matakuliah_list')

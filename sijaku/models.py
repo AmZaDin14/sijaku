@@ -38,3 +38,17 @@ class Jabatan(models.Model):
         verbose_name_plural = "Jabatan"
         ordering = ['nama']
         unique_together = ('nama',)
+
+class MataKuliah(models.Model):
+    kode = models.CharField(max_length=10, unique=True)
+    nama = models.CharField(max_length=100)
+    sks = models.PositiveIntegerField()
+    semester = models.PositiveSmallIntegerField(default=1)
+
+    def __str__(self):
+        return f"{self.kode} - {self.nama}"
+
+    class Meta:
+        verbose_name = "Mata Kuliah"
+        verbose_name_plural = "Mata Kuliah"
+        ordering = ['semester', 'kode']

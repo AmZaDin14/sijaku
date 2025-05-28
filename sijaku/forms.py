@@ -1,5 +1,5 @@
 from django import forms
-from .models import Dosen, Jabatan
+from .models import Dosen, Jabatan, MataKuliah
 
 class DosenForm(forms.ModelForm):
     class Meta:
@@ -17,4 +17,15 @@ class JabatanForm(forms.ModelForm):
         widgets = {
             'nama': forms.Select(attrs={'class': 'select select-bordered w-full'}),
             'dosen': forms.Select(attrs={'class': 'select select-bordered w-full'}),
+        }
+
+class MataKuliahForm(forms.ModelForm):
+    class Meta:
+        model = MataKuliah
+        fields = ['kode', 'nama', 'sks', 'semester']
+        widgets = {
+            'kode': forms.TextInput(attrs={'class': 'input input-bordered w-full'}),
+            'nama': forms.TextInput(attrs={'class': 'input input-bordered w-full'}),
+            'sks': forms.NumberInput(attrs={'class': 'input input-bordered w-full', 'min': 1}),
+            'semester': forms.NumberInput(attrs={'class': 'input input-bordered w-full', 'min': 1}),
         }
