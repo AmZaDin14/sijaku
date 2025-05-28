@@ -1,0 +1,13 @@
+services:
+  db:
+    image: mariadb:11.7.2
+    ports:
+      - "3306:3306"
+    environment:
+      MARIADB_DATABASE: sijaku
+      MARIADB_ROOT_PASSWORD: root
+
+  phpmydadmin:
+    image: phpmyadmin:5.2.2-apache
+    ports:
+      - "8080:80"
