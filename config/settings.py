@@ -7,7 +7,7 @@ env = Env()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-env.read_env(os.path.join(BASE_DIR, '.env'))
+Env.read_env(os.path.join(BASE_DIR, '.env'), overwrite=True)
 SECRET_KEY = env('SECRET_KEY')
 DEBUG = env.bool('DEBUG', default=False) # type: ignore
 
@@ -24,6 +24,7 @@ INSTALLED_APPS = [
     'theme',
     'django_browser_reload',
     'sijaku',
+    'accounts',
 ]
 
 MIDDLEWARE = [
@@ -85,3 +86,5 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 TAILWIND_APP_NAME = 'theme'
 NPM_BIN_PATH = '/run/current-system/sw/bin/bun'
+
+AUTH_USER_MODEL = 'accounts.User'

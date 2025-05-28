@@ -1,3 +1,22 @@
 from django.db import models
 
-# Create your models here.
+
+class Dosen(models.Model):
+    nidn = models.CharField(max_length=20, unique=True)
+    nama = models.CharField(max_length=100)
+
+    user = models.OneToOneField(
+        'accounts.User',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='dosen'
+    )
+
+    def __str__(self):
+        return self.nama
+
+    class Meta:
+        verbose_name = "Dosen"
+        verbose_name_plural = "Dosen"
+        ordering = ['nama']
