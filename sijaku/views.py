@@ -13,17 +13,23 @@ def dashboard(request):
     return render(request, 'sijaku/dashboard/index.html')
 
 def dosen_list(request):
+    if not request.user.is_superuser:
+        return redirect('dashboard')
     dosen = Dosen.objects.all()
     return render(request, 'sijaku/dashboard/admin/dosen.html', {'dosen_list': dosen})
 
 @require_http_methods(["POST"])
 def dosen_delete(request, pk):
+    if not request.user.is_superuser:
+        return redirect('dashboard')
     dosen = get_object_or_404(Dosen, pk=pk)
     dosen.delete()
     messages.success(request, "Dosen berhasil dihapus.")
     return redirect(reverse('dosen_list'))
 
 def dosen_create(request):
+    if not request.user.is_superuser:
+        return redirect('dashboard')
     if request.method == 'POST':
         form = DosenForm(request.POST)
         if form.is_valid():
@@ -44,8 +50,26 @@ def dosen_create(request):
     })
 
 def dosen_update(request, pk):
+    if not request.user.is_superuser:
+        return redirect('dashboard')
     dosen = get_object_or_404(Dosen, pk=pk)
-    if request.method == 'POST':
+    password_message = None
+    password_error = None
+    # Proses ubah password user jika ada query param ubah_password=1
+    if request.method == 'POST' and request.GET.get('ubah_password') == '1' and dosen.user:
+        new_password = request.POST.get('new_password')
+        confirm_password = request.POST.get('confirm_password')
+        if not new_password or not confirm_password:
+            password_error = 'Password tidak boleh kosong.'
+        elif new_password != confirm_password:
+            password_error = 'Password dan konfirmasi tidak sama.'
+        else:
+            dosen.user.set_password(new_password)
+            dosen.user.save()
+            password_message = 'Password berhasil diubah.'
+            return redirect('dosen_list')
+    # Proses update data dosen
+    elif request.method == 'POST':
         form = DosenForm(request.POST, instance=dosen)
         if form.is_valid():
             dosen = form.save()
@@ -64,5 +88,7 @@ def dosen_update(request, pk):
         'edit': True,
         'dosen': dosen,
         'jabatans': jabatans,
-        'selected_jabatans': selected_jabatans
+        'selected_jabatans': selected_jabatans,
+        'password_message': password_message,
+        'password_error': password_error,
     })

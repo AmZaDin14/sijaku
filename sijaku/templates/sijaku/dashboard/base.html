@@ -19,14 +19,20 @@
   </div>
   <div class="drawer-side">
     <label for="sidebar-drawer" class="drawer-overlay"></label>
-    <aside class="menu p-4 w-64 min-h-full bg-base-100 text-base-content border-r">
-      <h2 class="text-lg font-bold mb-4">Menu</h2>
-      <ul class="space-y-1">
-        <li><a class="menu-item{% if request.path == '/dashboard/' %} active{% endif %}" href="{% url 'dashboard' %}">Dashboard</a></li>
-        <li><a class="menu-item{% if request.path == '/dashboard/admin/dosen/' %} active{% endif %}" href="{% url 'dosen_list' %}">Data Dosen</a></li>
-        <!-- Tambahkan menu lain di sini -->
-        <li><a class="menu-item" href="{% url 'logout' %}">Logout</a></li>
-      </ul>
+    <aside class="menu p-4 w-64 min-h-full bg-base-100 text-base-content border-r flex flex-col justify-between">
+      <div>
+        <h2 class="text-lg font-bold mb-4">Menu</h2>
+        <ul class="space-y-1">
+          <li><a class="menu-item{% if request.path == '/dashboard/' %} active{% endif %}" href="{% url 'dashboard' %}">Dashboard</a></li>
+          {% if request.user.is_superuser %}
+          <li><a class="menu-item{% if request.path == '/dashboard/admin/dosen/' %} active{% endif %}" href="{% url 'dosen_list' %}">Data Dosen</a></li>
+          {% endif %}
+          <!-- Tambahkan menu lain di sini -->
+        </ul>
+      </div>
+      <div class="mt-8">
+        <a class="menu-item btn btn-error w-full" href="{% url 'logout' %}">Logout</a>
+      </div>
     </aside>
   </div>
 </div>

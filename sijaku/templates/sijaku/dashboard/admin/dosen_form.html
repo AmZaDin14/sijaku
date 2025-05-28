@@ -16,7 +16,7 @@
     </div>
     <div class="form-control w-full">
       <label class="label">Jabatan</label>
-      <div class="flex flex-col gap-2">
+      <div class="flex flex-row flex-wrap gap-4">
         {% for jabatan in jabatans %}
           <label class="cursor-pointer flex items-center gap-2">
             <input type="checkbox" name="jabatans" value="{{ jabatan.id }}" class="checkbox checkbox-primary" {% if jabatan.id in selected_jabatans %}checked{% endif %}>
@@ -30,5 +30,22 @@
       <a href="{% url 'dosen_list' %}" class="btn btn-secondary">Batal</a>
     </div>
   </form>
+  {% if edit and dosen.user %}
+  <div class="mt-8 p-4 bg-base-200 rounded-xl">
+    <h2 class="text-lg font-bold mb-2">Ubah Password User</h2>
+    <form method="post" action="{% url 'dosen_update' dosen.pk %}?ubah_password=1" class="space-y-4">
+      {% csrf_token %}
+      <div class="form-control w-full">
+        <label for="new_password" class="label">Password Baru</label>
+        <input type="password" name="new_password" id="new_password" class="input input-bordered w-full" required>
+      </div>
+      <div class="form-control w-full">
+        <label for="confirm_password" class="label">Konfirmasi Password</label>
+        <input type="password" name="confirm_password" id="confirm_password" class="input input-bordered w-full" required>
+      </div>
+      <button type="submit" class="btn btn-warning w-full">Ubah Password</button>
+    </form>
+  </div>
+  {% endif %}
 </div>
 {% endblock %}

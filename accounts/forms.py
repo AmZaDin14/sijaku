@@ -29,4 +29,12 @@ class UserRegistrationForm(forms.ModelForm):
         user.set_password(self.cleaned_data["password"])
         if commit:
             user.save()
+            # Assign user ke Dosen dengan nidn yang sama
+            from sijaku.models import Dosen
+            try:
+                dosen = Dosen.objects.get(nidn=user.username)
+                dosen.user = user
+                dosen.save()
+            except Dosen.DoesNotExist:
+                pass
         return user
