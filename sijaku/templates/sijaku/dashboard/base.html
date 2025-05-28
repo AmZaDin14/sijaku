@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load static %}
+{% load sijaku_tags %}
 {% block content %}
 <div class="drawer lg:drawer-open">
   <input id="sidebar-drawer" type="checkbox" class="drawer-toggle" />
@@ -27,6 +28,9 @@
           {% if request.user.is_superuser %}
           <li><a class="menu-item{% if request.path == '/dashboard/admin/dosen/' %} active{% endif %}" href="{% url 'dosen_list' %}">Data Dosen</a></li>
           <li><a class="menu-item{% if request.path == '/dashboard/admin/matakuliah/' %} active{% endif %}" href="{% url 'matakuliah_list' %}">Data Mata Kuliah</a></li>
+          {% endif %}
+          {% if request.user.is_authenticated and request.user|is_kaprodi %}
+          <li><a class="menu-item{% if request.path == '/dashboard/admin/tahunakademik/' %} active{% endif %}" href="{% url 'tahunakademik_list' %}">Tahun Akademik</a></li>
           {% endif %}
           <!-- Tambahkan menu lain di sini -->
         </ul>

@@ -1,5 +1,5 @@
 from django import forms
-from .models import Dosen, Jabatan, MataKuliah
+from .models import Dosen, Jabatan, MataKuliah, TahunAkademik
 
 class DosenForm(forms.ModelForm):
     class Meta:
@@ -28,4 +28,14 @@ class MataKuliahForm(forms.ModelForm):
             'nama': forms.TextInput(attrs={'class': 'input input-bordered w-full'}),
             'sks': forms.NumberInput(attrs={'class': 'input input-bordered w-full', 'min': 1}),
             'semester': forms.NumberInput(attrs={'class': 'input input-bordered w-full', 'min': 1}),
+        }
+
+class TahunAkademikForm(forms.ModelForm):
+    class Meta:
+        model = TahunAkademik
+        fields = ['tahun', 'semester', 'aktif']
+        widgets = {
+            'tahun': forms.TextInput(attrs={'class': 'input input-bordered w-full', 'placeholder': '2024/2025'}),
+            'semester': forms.Select(attrs={'class': 'select select-bordered w-full'}),
+            'aktif': forms.CheckboxInput(attrs={'class': 'checkbox checkbox-primary'}),
         }

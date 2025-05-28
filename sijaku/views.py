@@ -1,5 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from .models import Dosen, Jabatan, MataKuliah
+from django.contrib.auth.decorators import login_required
+from .models import Dosen, Jabatan, MataKuliah, TahunAkademik
 from .forms import DosenForm
 from django.urls import reverse
 from django.contrib import messages
@@ -9,6 +10,7 @@ from django.views.decorators.http import require_http_methods
 def index(request):
     return render(request, 'sijaku/index.html')
 
+@login_required
 def dashboard(request):
     return render(request, 'sijaku/dashboard/index.html')
 
@@ -135,3 +137,48 @@ def matakuliah_delete(request, pk):
     matakuliah.delete()
     messages.success(request, "Mata Kuliah berhasil dihapus.")
     return redirect('matakuliah_list')
+
+def is_kaprodi(user):
+    return hasattr(user, 'dosen') and user.dosen.jabatan.filter(nama='kaprodi').exists()
+
+def tahunakademik_list(request):
+    if not request.user.is_authenticated or not is_kaprodi(request.user):
+        return redirect('dashboard')
+    tahunakademik = TahunAkademik.objects.all()
+    return render(request, 'sijaku/dashboard/admin/tahunakademik.html', {'tahunakademik_list': tahunakademik})
+
+def tahunakademik_create(request):
+    if not request.user.is_authenticated or not is_kaprodi(request.user):
+        return redirect('dashboard')
+    from .forms import TahunAkademikForm
+    if request.method == 'POST':
+        form = TahunAkademikForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('tahunakademik_list')
+    else:
+        form = TahunAkademikForm()
+    return render(request, 'sijaku/dashboard/admin/tahunakademik_form.html', {'form': form})
+
+def tahunakademik_update(request, pk):
+    if not request.user.is_authenticated or not is_kaprodi(request.user):
+        return redirect('dashboard')
+    tahunakademik = get_object_or_404(TahunAkademik, pk=pk)
+    from .forms import TahunAkademikForm
+    if request.method == 'POST':
+        form = TahunAkademikForm(request.POST, instance=tahunakademik)
+        if form.is_valid():
+            form.save()
+            return redirect('tahunakademik_list')
+    else:
+        form = TahunAkademikForm(instance=tahunakademik)
+    return render(request, 'sijaku/dashboard/admin/tahunakademik_form.html', {'form': form, 'edit': True, 'tahunakademik': tahunakademik})
+
+@require_http_methods(["POST"])
+def tahunakademik_delete(request, pk):
+    if not request.user.is_authenticated or not is_kaprodi(request.user):
+        return redirect('dashboard')
+    tahunakademik = get_object_or_404(TahunAkademik, pk=pk)
+    tahunakademik.delete()
+    messages.success(request, "Tahun Akademik berhasil dihapus.")
+    return redirect('tahunakademik_list')

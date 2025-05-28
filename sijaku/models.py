@@ -52,3 +52,22 @@ class MataKuliah(models.Model):
         verbose_name = "Mata Kuliah"
         verbose_name_plural = "Mata Kuliah"
         ordering = ['semester', 'kode']
+
+class TahunAkademik(models.Model):
+    SEMESTER_CHOICES = [
+        ('ganjil', 'Ganjil'),
+        ('genap', 'Genap'),
+    ]
+
+    tahun = models.CharField(max_length=9)
+    semester = models.CharField(max_length=10, choices=SEMESTER_CHOICES, default='ganjil')
+    aktif = models.BooleanField(default=False)
+
+    def __str__(self):
+        return self.tahun
+
+    class Meta:
+        verbose_name = "Tahun Akademik"
+        verbose_name_plural = "Tahun Akademik"
+        ordering = ['-tahun']
+        unique_together = ('tahun', 'semester')
