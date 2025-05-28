@@ -3,6 +3,10 @@ set dotenv-load
 @_default:
   just --list
 
+# Migrate
+migrate:
+  python manage.py makemigrations && python manage.py migrate
+  
 # Django runserver
 serve:
   python manage.py runserver

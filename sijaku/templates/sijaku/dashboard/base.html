@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% load static %}
+{% block content %}
+<div class="drawer lg:drawer-open">
+  <input id="sidebar-drawer" type="checkbox" class="drawer-toggle" />
+  <div class="drawer-content flex flex-col">
+    <!-- Page content here -->
+    <div class="w-full navbar bg-base-100 shadow mb-4">
+      <div class="flex-none lg:hidden">
+        <label for="sidebar-drawer" class="btn btn-square btn-ghost">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" /></svg>
+        </label>
+      </div>
+      <div class="flex-1 px-2 text-xl font-bold">Sijaku Dashboard</div>
+    </div>
+    <main class="p-4">
+      {% block dashboard_content %}{% endblock %}
+    </main>
+  </div>
+  <div class="drawer-side">
+    <label for="sidebar-drawer" class="drawer-overlay"></label>
+    <aside class="menu p-4 w-64 min-h-full bg-base-100 text-base-content border-r">
+      <h2 class="text-lg font-bold mb-4">Menu</h2>
+      <ul class="space-y-1">
+        <li><a class="menu-item{% if request.path == '/dashboard/' %} active{% endif %}" href="{% url 'dashboard' %}">Dashboard</a></li>
+        <li><a class="menu-item{% if request.path == '/dashboard/admin/dosen/' %} active{% endif %}" href="{% url 'dosen_list' %}">Data Dosen</a></li>
+        <!-- Tambahkan menu lain di sini -->
+        <li><a class="menu-item" href="{% url 'logout' %}">Logout</a></li>
+      </ul>
+    </aside>
+  </div>
+</div>
+{% endblock %}
