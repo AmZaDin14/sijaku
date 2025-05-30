@@ -6,8 +6,13 @@ services:
     environment:
       MARIADB_DATABASE: sijaku
       MARIADB_ROOT_PASSWORD: root
+    volumes:
+      - db_data:/var/lib/mysql
 
   phpmydadmin:
     image: phpmyadmin:5.2.2-apache
     ports:
       - "8080:80"
+
+volumes:
+  db_data:

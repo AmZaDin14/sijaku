@@ -26,11 +26,12 @@
         <ul class="space-y-1">
           <li><a class="menu-item{% if request.path == '/dashboard/' %} active{% endif %}" href="{% url 'dashboard' %}">Dashboard</a></li>
           {% if request.user.is_superuser %}
-          <li><a class="menu-item{% if request.path == '/dashboard/admin/dosen/' %} active{% endif %}" href="{% url 'dosen_list' %}">Data Dosen</a></li>
-          <li><a class="menu-item{% if request.path == '/dashboard/admin/matakuliah/' %} active{% endif %}" href="{% url 'matakuliah_list' %}">Data Mata Kuliah</a></li>
+          <li><a class="menu-item{% if request.path == '/dashboard/dosen/' %} active{% endif %}" href="{% url 'dosen_list' %}">Data Dosen</a></li>
+          <li><a class="menu-item{% if request.path == '/dashboard/matakuliah/' %} active{% endif %}" href="{% url 'matakuliah_list' %}">Data Mata Kuliah</a></li>
+          <li><a class="menu-item{% if request.path == '/dashboard/ruangan/' %} active{% endif %}" href="{% url 'ruangan_list' %}">Data Ruangan</a></li>
           {% endif %}
           {% if request.user.is_authenticated and request.user|is_kaprodi %}
-          <li><a class="menu-item{% if request.path == '/dashboard/admin/tahunakademik/' %} active{% endif %}" href="{% url 'tahunakademik_list' %}">Tahun Akademik</a></li>
+          <li><a class="menu-item{% if request.path == '/dashboard/tahunakademik/' %} active{% endif %}" href="{% url 'tahunakademik_list' %}">Tahun Akademik</a></li>
           {% endif %}
           <!-- Tambahkan menu lain di sini -->
         </ul>

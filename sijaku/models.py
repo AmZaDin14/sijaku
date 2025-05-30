@@ -71,3 +71,21 @@ class TahunAkademik(models.Model):
         verbose_name_plural = "Tahun Akademik"
         ordering = ['-tahun']
         unique_together = ('tahun', 'semester')
+
+class Ruangan(models.Model):
+    JENIS_CHOICES = [
+        ("kelas", "Ruang Kelas"),
+        ("lab", "Lab Komputer"),
+    ]
+    nama = models.CharField(max_length=50, unique=True)
+    jenis = models.CharField(max_length=10, choices=JENIS_CHOICES)
+    keterangan = models.TextField(blank=True, null=True)
+
+    def __str__(self):
+        jenis_display = dict(self.JENIS_CHOICES).get(self.jenis, self.jenis)
+        return f"{self.nama} ({jenis_display})"
+
+    class Meta:
+        verbose_name = "Ruangan"
+        verbose_name_plural = "Ruangan"
+        ordering = ['nama']

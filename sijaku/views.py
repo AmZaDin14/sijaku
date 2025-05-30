@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
-from .models import Dosen, Jabatan, MataKuliah, TahunAkademik
+from .models import Dosen, Jabatan, MataKuliah, TahunAkademik, Ruangan
 from .forms import DosenForm
 from django.urls import reverse
 from django.contrib import messages
@@ -182,3 +182,45 @@ def tahunakademik_delete(request, pk):
     tahunakademik.delete()
     messages.success(request, "Tahun Akademik berhasil dihapus.")
     return redirect('tahunakademik_list')
+
+def ruangan_list(request):
+    if not request.user.is_superuser:
+        return redirect('dashboard')
+    ruangan = Ruangan.objects.all()
+    return render(request, 'sijaku/dashboard/admin/ruangan.html', {'ruangan_list': ruangan})
+
+def ruangan_create(request):
+    if not request.user.is_superuser:
+        return redirect('dashboard')
+    from .forms import RuanganForm
+    if request.method == 'POST':
+        form = RuanganForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('ruangan_list')
+    else:
+        form = RuanganForm()
+    return render(request, 'sijaku/dashboard/admin/ruangan_form.html', {'form': form})
+
+def ruangan_update(request, pk):
+    if not request.user.is_superuser:
+        return redirect('dashboard')
+    ruangan = get_object_or_404(Ruangan, pk=pk)
+    from .forms import RuanganForm
+    if request.method == 'POST':
+        form = RuanganForm(request.POST, instance=ruangan)
+        if form.is_valid():
+            form.save()
+            return redirect('ruangan_list')
+    else:
+        form = RuanganForm(instance=ruangan)
+    return render(request, 'sijaku/dashboard/admin/ruangan_form.html', {'form': form, 'edit': True, 'ruangan': ruangan})
+
+@require_http_methods(["POST"])
+def ruangan_delete(request, pk):
+    if not request.user.is_superuser:
+        return redirect('dashboard')
+    ruangan = get_object_or_404(Ruangan, pk=pk)
+    ruangan.delete()
+    messages.success(request, "Ruangan berhasil dihapus.")
+    return redirect('ruangan_list')
