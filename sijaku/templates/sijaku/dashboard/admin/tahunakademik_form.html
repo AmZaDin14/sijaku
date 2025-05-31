@@ -1,28 +1,34 @@
 {% extends "sijaku/dashboard/base.html" %}
 {% block dashboard_content %}
-<div class="container mx-auto p-4 max-w-lg">
-  <h1 class="text-2xl font-bold mb-4">{% if edit %}Edit Tahun Akademik{% else %}Tambah Tahun Akademik{% endif %}</h1>
-  <form method="post" class="space-y-4">
-    {% csrf_token %}
-    <div class="form-control w-full">
-      {{ form.tahun.label_tag }}
-      {{ form.tahun }}
-      {% if form.tahun.errors %}<span class="text-error text-xs">{{ form.tahun.errors|striptags }}</span>{% endif %}
+    <div class="container mx-auto p-4 max-w-lg">
+        <h1 class="text-2xl font-bold mb-4">
+            {% if edit %}
+                Edit Tahun Akademik
+            {% else %}
+                Tambah Tahun Akademik
+            {% endif %}
+        </h1>
+        <form method="post" class="space-y-4">
+            {% csrf_token %}
+            <div class="form-control w-full">
+                {{ form.tahun.label_tag }}
+                {{ form.tahun }}
+                {% if form.tahun.errors %}<span class="text-error text-xs">{{ form.tahun.errors|striptags }}</span>{% endif %}
+            </div>
+            <div class="form-control w-full">
+                {{ form.semester.label_tag }}
+                {{ form.semester }}
+                {% if form.semester.errors %}<span class="text-error text-xs">{{ form.semester.errors|striptags }}</span>{% endif %}
+            </div>
+            <div class="form-control w-full flex items-center gap-2">
+                {{ form.aktif }}
+                <label for="id_aktif">Tahun Akademik Aktif</label>
+                {% if form.aktif.errors %}<span class="text-error text-xs">{{ form.aktif.errors|striptags }}</span>{% endif %}
+            </div>
+            <div class="flex gap-2">
+                <button type="submit" class="btn btn-primary">Simpan</button>
+                <a href="{% url 'tahunakademik_list' %}" class="btn btn-secondary">Batal</a>
+            </div>
+        </form>
     </div>
-    <div class="form-control w-full">
-      {{ form.semester.label_tag }}
-      {{ form.semester }}
-      {% if form.semester.errors %}<span class="text-error text-xs">{{ form.semester.errors|striptags }}</span>{% endif %}
-    </div>
-    <div class="form-control w-full flex items-center gap-2">
-      {{ form.aktif }}
-      <label for="id_aktif">Tahun Akademik Aktif</label>
-      {% if form.aktif.errors %}<span class="text-error text-xs">{{ form.aktif.errors|striptags }}</span>{% endif %}
-    </div>
-    <div class="flex gap-2">
-      <button type="submit" class="btn btn-primary">Simpan</button>
-      <a href="{% url 'tahunakademik_list' %}" class="btn btn-secondary">Batal</a>
-    </div>
-  </form>
-</div>
 {% endblock %}

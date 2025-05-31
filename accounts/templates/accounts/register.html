@@ -1,32 +1,39 @@
 {% extends 'base.html' %}
 {% block content %}
-<div class="min-h-screen flex items-center justify-center bg-base-200">
-  <div class="w-full max-w-md p-8 space-y-6 bg-base-100 rounded-xl shadow-lg">
-    <h2 class="text-2xl font-bold text-center">Register</h2>
-    <form method="post" class="space-y-4">
-      {% csrf_token %}
-      {% if form.non_field_errors %}
-        <div class="text-error text-sm mb-2">
-          {{ form.non_field_errors|striptags }}
+    <div class="min-h-screen flex items-center justify-center bg-base-200">
+        <div class="w-full max-w-md p-8 space-y-6 bg-base-100 rounded-xl shadow-lg">
+            <h2 class="text-2xl font-bold text-center">Register</h2>
+            <form method="post" class="space-y-4">
+                {% csrf_token %}
+                {% if form.non_field_errors %}
+                    <div class="text-error text-sm mb-2">{{ form.non_field_errors|striptags }}</div>
+                {% endif %}
+                {% for field in form.visible_fields %}
+                    <div class="form-control w-full">
+                        {{ field.label_tag }}
+                        {% if field.field.widget.input_type == "password" %}
+                            <input type="password"
+                                   name="{{ field.html_name }}"
+                                   class="input input-bordered w-full"
+                                   {% if field.field.required %}required{% endif %}
+                                   id="id_{{ field.html_name }}">
+                        {% else %}
+                            <input type="{{ field.field.widget.input_type }}"
+                                   name="{{ field.html_name }}"
+                                   value="{{ field.value|default_if_none:'' }}"
+                                   class="input input-bordered w-full"
+                                   {% if field.field.required %}required{% endif %}
+                                   id="id_{{ field.html_name }}">
+                        {% endif %}
+                        {% if field.errors %}<span class="text-error text-xs">{{ field.errors|striptags }}</span>{% endif %}
+                    </div>
+                {% endfor %}
+                <button type="submit" class="btn btn-primary w-full">Register</button>
+            </form>
+            <div class="text-center pt-2">
+                <span class="text-sm">Sudah punya akun?</span>
+                <a href="{% url 'login' %}" class="link link-primary ml-1">Masuk</a>
+            </div>
         </div>
-      {% endif %}
-      {% for field in form.visible_fields %}
-        <div class="form-control w-full">
-          {{ field.label_tag }}
-          {% if field.field.widget.input_type == "password" %}
-            <input type="password" name="{{ field.html_name }}" class="input input-bordered w-full" {% if field.field.required %}required{% endif %} id="id_{{ field.html_name }}">
-          {% else %}
-            <input type="{{ field.field.widget.input_type }}" name="{{ field.html_name }}" value="{{ field.value|default_if_none:'' }}" class="input input-bordered w-full" {% if field.field.required %}required{% endif %} id="id_{{ field.html_name }}">
-          {% endif %}
-          {% if field.errors %}<span class="text-error text-xs">{{ field.errors|striptags }}</span>{% endif %}
-        </div>
-      {% endfor %}
-      <button type="submit" class="btn btn-primary w-full">Register</button>
-    </form>
-    <div class="text-center pt-2">
-      <span class="text-sm">Sudah punya akun?</span>
-      <a href="{% url 'login' %}" class="link link-primary ml-1">Masuk</a>
     </div>
-  </div>
-</div>
 {% endblock %}
