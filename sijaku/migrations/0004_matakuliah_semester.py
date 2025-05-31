@@ -4,15 +4,26 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('sijaku', '0003_matakuliah'),
+        ("sijaku", "0003_matakuliah"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='matakuliah',
-            name='semester',
-            field=models.PositiveSmallIntegerField(choices=[(1, 'Semester 1'), (2, 'Semester 2'), (3, 'Semester 3'), (4, 'Semester 4'), (5, 'Semester 5'), (6, 'Semester 6'), (7, 'Semester 7'), (8, 'Semester 8')], default=1),
+            model_name="matakuliah",
+            name="semester",
+            field=models.PositiveSmallIntegerField(
+                choices=[
+                    (1, "Semester 1"),
+                    (2, "Semester 2"),
+                    (3, "Semester 3"),
+                    (4, "Semester 4"),
+                    (5, "Semester 5"),
+                    (6, "Semester 6"),
+                    (7, "Semester 7"),
+                    (8, "Semester 8"),
+                ],
+                default=1,
+            ),
         ),
     ]

@@ -1,15 +1,19 @@
 {% load static tailwind_tags %}
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
   <head>
-    <title>{{ title|default:"Sijaku"}}</title>
+    <title>{{ title|default:"Sijaku" }}</title>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta http-equiv="X-UA-Compatible" content="ie=edge" />
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <meta name="description" content="Sijaku - Your web application description here." />
+    <meta name="keywords" content="sijaku, web, application, django, tailwind" />
+    <script defer
+            src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     {% tailwind_css %}
   </head>
   <body>
-    {% block content %}{% endblock content %}
+    {% block content %}
+    {% endblock content %}
   </body>
 </html>

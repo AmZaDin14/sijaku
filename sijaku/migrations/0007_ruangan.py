@@ -4,24 +4,37 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('sijaku', '0006_alter_matakuliah_options_tahunakademik'),
+        ("sijaku", "0006_alter_matakuliah_options_tahunakademik"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='Ruangan',
+            name="Ruangan",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('nama', models.CharField(max_length=50, unique=True)),
-                ('jenis', models.CharField(choices=[('kelas', 'Ruang Kelas'), ('lab', 'Lab Komputer')], max_length=10)),
-                ('keterangan', models.TextField(blank=True, null=True)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("nama", models.CharField(max_length=50, unique=True)),
+                (
+                    "jenis",
+                    models.CharField(
+                        choices=[("kelas", "Ruang Kelas"), ("lab", "Lab Komputer")],
+                        max_length=10,
+                    ),
+                ),
+                ("keterangan", models.TextField(blank=True, null=True)),
             ],
             options={
-                'verbose_name': 'Ruangan',
-                'verbose_name_plural': 'Ruangan',
-                'ordering': ['nama'],
+                "verbose_name": "Ruangan",
+                "verbose_name_plural": "Ruangan",
+                "ordering": ["nama"],
             },
         ),
     ]

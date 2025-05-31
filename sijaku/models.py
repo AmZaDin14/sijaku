@@ -6,11 +6,11 @@ class Dosen(models.Model):
     nama = models.CharField(max_length=100)
 
     user = models.OneToOneField(
-        'accounts.User',
+        "accounts.User",
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
-        related_name='dosen'
+        related_name="dosen",
     )
 
     def __str__(self):
@@ -19,7 +19,7 @@ class Dosen(models.Model):
     class Meta:
         verbose_name = "Dosen"
         verbose_name_plural = "Dosen"
-        ordering = ['nama']
+        ordering = ["nama"]
 
 
 class Jabatan(models.Model):
@@ -28,7 +28,9 @@ class Jabatan(models.Model):
         ("wd1", "WD1"),
     ]
     nama = models.CharField(max_length=20, choices=JABATAN_CHOICES, unique=True)
-    dosen = models.ForeignKey('Dosen', on_delete=models.CASCADE, related_name='jabatan', null=True, blank=True)
+    dosen = models.ForeignKey(
+        "Dosen", on_delete=models.CASCADE, related_name="jabatan", null=True, blank=True
+    )
 
     def __str__(self):
         return dict(self.JABATAN_CHOICES).get(self.nama, self.nama)
@@ -36,8 +38,9 @@ class Jabatan(models.Model):
     class Meta:
         verbose_name = "Jabatan"
         verbose_name_plural = "Jabatan"
-        ordering = ['nama']
-        unique_together = ('nama',)
+        ordering = ["nama"]
+        unique_together = ("nama",)
+
 
 class MataKuliah(models.Model):
     kode = models.CharField(max_length=10, unique=True)
@@ -51,16 +54,19 @@ class MataKuliah(models.Model):
     class Meta:
         verbose_name = "Mata Kuliah"
         verbose_name_plural = "Mata Kuliah"
-        ordering = ['semester', 'kode']
+        ordering = ["semester", "kode"]
+
 
 class TahunAkademik(models.Model):
     SEMESTER_CHOICES = [
-        ('ganjil', 'Ganjil'),
-        ('genap', 'Genap'),
+        ("ganjil", "Ganjil"),
+        ("genap", "Genap"),
     ]
 
     tahun = models.CharField(max_length=9)
-    semester = models.CharField(max_length=10, choices=SEMESTER_CHOICES, default='ganjil')
+    semester = models.CharField(
+        max_length=10, choices=SEMESTER_CHOICES, default="ganjil"
+    )
     aktif = models.BooleanField(default=False)
 
     def __str__(self):
@@ -69,8 +75,9 @@ class TahunAkademik(models.Model):
     class Meta:
         verbose_name = "Tahun Akademik"
         verbose_name_plural = "Tahun Akademik"
-        ordering = ['-tahun']
-        unique_together = ('tahun', 'semester')
+        ordering = ["-tahun"]
+        unique_together = ("tahun", "semester")
+
 
 class Ruangan(models.Model):
     JENIS_CHOICES = [
@@ -88,4 +95,4 @@ class Ruangan(models.Model):
     class Meta:
         verbose_name = "Ruangan"
         verbose_name_plural = "Ruangan"
-        ordering = ['nama']
+        ordering = ["nama"]

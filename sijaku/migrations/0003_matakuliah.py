@@ -4,24 +4,31 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('sijaku', '0002_alter_jabatan_dosen'),
+        ("sijaku", "0002_alter_jabatan_dosen"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='MataKuliah',
+            name="MataKuliah",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('kode', models.CharField(max_length=10, unique=True)),
-                ('nama', models.CharField(max_length=100)),
-                ('sks', models.PositiveIntegerField()),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("kode", models.CharField(max_length=10, unique=True)),
+                ("nama", models.CharField(max_length=100)),
+                ("sks", models.PositiveIntegerField()),
             ],
             options={
-                'verbose_name': 'Mata Kuliah',
-                'verbose_name_plural': 'Mata Kuliah',
-                'ordering': ['kode'],
+                "verbose_name": "Mata Kuliah",
+                "verbose_name_plural": "Mata Kuliah",
+                "ordering": ["kode"],
             },
         ),
     ]
