@@ -9,6 +9,11 @@ urlpatterns = [
     path("dashboard/dosen/delete/<int:pk>/", views.dosen_delete, name="dosen_delete"),
     path("dashboard/dosen/tambah/", views.dosen_create, name="dosen_create"),
     path("dashboard/dosen/edit/<int:pk>/", views.dosen_update, name="dosen_update"),
+    path(
+        "dashboard/dosen/upload-csv/",
+        views.dosen_upload_csv,
+        name="dosen_upload_csv",
+    ),
     # CRUD MataKuliah
     path("dashboard/matakuliah/", views.matakuliah_list, name="matakuliah_list"),
     path(

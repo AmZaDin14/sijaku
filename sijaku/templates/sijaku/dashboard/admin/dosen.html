@@ -1,11 +1,20 @@
 {% extends "sijaku/dashboard/base.html" %}
+{% load static %}
 {% block dashboard_content %}
     <div class="max-w-4xl mx-auto p-4">
         <div class="flex items-center justify-between mb-6">
             <h1 class="text-3xl font-extrabold tracking-tight">Daftar Dosen</h1>
-            <a href="{% url 'dosen_create' %}"
-               class="btn btn-primary btn-sm shadow-md">Tambah Dosen</a>
+            <div class="flex gap-2">
+                <a href="{% url 'dosen_create' %}"
+                   class="btn btn-primary btn-sm shadow-md">Tambah Dosen</a>
+            </div>
         </div>
+        <form method="post" enctype="multipart/form-data" action="{% url 'dosen_upload_csv' %}" class="mb-4 flex gap-2 items-center flex-wrap">
+            {% csrf_token %}
+            <input type="file" name="csv_file" accept=".csv" class="file-input file-input-bordered file-input-sm" required>
+            <button type="submit" class="btn btn-accent btn-sm">Upload Data</button>
+            <a href="{% static 'sijaku/template_dosen.csv' %}" download class="btn btn-outline btn-success btn-sm">Download Template</a>
+        </form>
         <div class="overflow-x-auto rounded-xl shadow-lg bg-base-100">
             <table class="table table-zebra w-full">
                 <thead class="bg-base-200 text-base-content">

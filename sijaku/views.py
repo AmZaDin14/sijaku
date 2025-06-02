@@ -440,3 +440,24 @@ def matakuliah_upload_excel(request):
         else:
             messages.error(request, "Format file tidak didukung. Upload file .csv.")
     return redirect("matakuliah_list")
+
+
+def dosen_upload_csv(request):
+    if not request.user.is_superuser:
+        return redirect("dashboard")
+    if request.method == "POST" and request.FILES.get("csv_file"):
+        file = request.FILES["csv_file"]
+        decoded = file.read().decode("utf-8").splitlines()
+        reader = csv.DictReader(decoded)
+        count = 0
+        for row in reader:
+            nidn = row.get("NIDN")
+            nama = row.get("Nama")
+            if nidn and nama:
+                Dosen.objects.get_or_create(
+                    nidn=nidn.strip(),
+                    defaults={"nama": nama.strip()},
+                )
+                count += 1
+        messages.success(request, f"Berhasil menambahkan {count} dosen dari file.")
+    return redirect("dosen_list")

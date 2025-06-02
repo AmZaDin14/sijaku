@@ -6,7 +6,11 @@ set dotenv-load
 # Migrate
 migrate:
   python manage.py makemigrations && python manage.py migrate
-  
+
+# Create a superuser
+su:
+  python manage.py createsuperuser
+
 # Django runserver
 serve:
   python manage.py runserver

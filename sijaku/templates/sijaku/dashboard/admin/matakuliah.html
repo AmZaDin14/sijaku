@@ -4,16 +4,14 @@
     <div class="max-w-4xl mx-auto p-4">
         <div class="flex items-center justify-between mb-6">
             <h1 class="text-3xl font-extrabold tracking-tight">Daftar Mata Kuliah</h1>
-            <div class="flex gap-2">
-                <a href="{% url 'matakuliah_create' %}"
-                   class="btn btn-primary btn-sm shadow-md">Tambah Mata Kuliah</a>
-                <a href="{% static 'sijaku/template_matakuliah.csv' %}" download class="btn btn-outline btn-success btn-sm">Download Template Excel</a>
-            </div>
+            <a href="{% url 'matakuliah_create' %}"
+               class="btn btn-primary btn-sm shadow-md">Tambah Mata Kuliah</a>
         </div>
-        <form method="post" enctype="multipart/form-data" action="{% url 'matakuliah_upload_excel' %}" class="mb-4 flex gap-2 items-center">
+        <form method="post" enctype="multipart/form-data" action="{% url 'matakuliah_upload_excel' %}" class="mb-4 flex gap-2 items-center flex-wrap">
             {% csrf_token %}
             <input type="file" name="excel_file" accept=".csv,.xlsx,.xls" class="file-input file-input-bordered file-input-sm" required>
-            <button type="submit" class="btn btn-accent btn-sm">Upload Excel</button>
+            <button type="submit" class="btn btn-accent btn-sm">Upload Data</button>
+            <a href="{% static 'sijaku/template_matakuliah.csv' %}" download class="btn btn-outline btn-success btn-sm">Download Template</a>
         </form>
         <div class="overflow-x-auto rounded-xl shadow-lg bg-base-100">
             <table class="table table-zebra w-full">
@@ -33,7 +31,7 @@
                             <td class="px-4 py-2">{{ mk.nama }}</td>
                             <td class="px-4 py-2">{{ mk.sks }}</td>
                             <td class="px-4 py-2">{{ mk.semester }}</td>
-                            <td class="px-4 py-2 flex flex-wrap gap-2 justify-center">
+                            <td class="px-4 py-2 flex gap-2 justify-center">
                                 <a href="{% url 'matakuliah_update' mk.pk %}"
                                    class="btn btn-warning btn-xs shadow">Edit</a>
                                 <form method="post"

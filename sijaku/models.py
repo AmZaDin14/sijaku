@@ -29,7 +29,11 @@ class Jabatan(models.Model):
     ]
     nama = models.CharField(max_length=20, choices=JABATAN_CHOICES, unique=True)
     dosen = models.ForeignKey(
-        "Dosen", on_delete=models.CASCADE, related_name="jabatan", null=True, blank=True
+        "Dosen",
+        on_delete=models.SET_NULL,
+        related_name="jabatan",
+        null=True,
+        blank=True,
     )
 
     def __str__(self):
