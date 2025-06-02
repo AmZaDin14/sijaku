@@ -78,4 +78,19 @@ urlpatterns = [
         views.pemetaan_edit_dosen,
         name="pemetaan_edit_dosen",
     ),
+    # CRUD Peminatan
+    path("dashboard/peminatan/", views.peminatan_list, name="peminatan_list"),
+    path(
+        "dashboard/peminatan/tambah/", views.peminatan_create, name="peminatan_create"
+    ),
+    path(
+        "dashboard/peminatan/edit/<int:pk>/",
+        views.peminatan_update,
+        name="peminatan_update",
+    ),
+    path(
+        "dashboard/peminatan/delete/<int:pk>/",
+        views.peminatan_delete,
+        name="peminatan_delete",
+    ),
 ]

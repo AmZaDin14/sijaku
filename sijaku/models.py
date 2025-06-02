@@ -46,11 +46,36 @@ class Jabatan(models.Model):
         unique_together = ("nama",)
 
 
+class Peminatan(models.Model):
+    kode = models.CharField(max_length=10, unique=True)
+    nama = models.CharField(max_length=100)
+
+    def __str__(self):
+        return f"{self.nama}"
+
+    class Meta:
+        verbose_name = "Peminatan"
+        verbose_name_plural = "Peminatan"
+        ordering = ["kode"]
+
+
 class MataKuliah(models.Model):
+    TIPE_CHOICES = [
+        ("teori", "Teori"),
+        ("praktik", "Praktik"),
+    ]
     kode = models.CharField(max_length=10, unique=True)
     nama = models.CharField(max_length=100)
     sks = models.PositiveIntegerField()
     semester = models.PositiveSmallIntegerField(default=1)
+    tipe = models.CharField(max_length=10, choices=TIPE_CHOICES, default="teori")
+    peminatan = models.ForeignKey(
+        "Peminatan",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="matakuliah",
+    )
 
     def __str__(self):
         return f"{self.nama}"

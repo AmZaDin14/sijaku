@@ -14,6 +14,7 @@ from .models import (
     Jabatan,
     MataKuliah,
     PemetaanDosenMK,
+    Peminatan,  # pastikan sudah diimpor
     Ruangan,
     TahunAkademik,
 )
@@ -461,3 +462,56 @@ def dosen_upload_csv(request):
                 count += 1
         messages.success(request, f"Berhasil menambahkan {count} dosen dari file.")
     return redirect("dosen_list")
+
+
+def peminatan_list(request):
+    if not request.user.is_superuser:
+        return redirect("dashboard")
+    daftar = Peminatan.objects.all()
+    return render(
+        request, "sijaku/dashboard/admin/peminatan.html", {"peminatan_list": daftar}
+    )
+
+
+def peminatan_create(request):
+    if not request.user.is_superuser:
+        return redirect("dashboard")
+    from .forms import PeminatanForm
+
+    if request.method == "POST":
+        form = PeminatanForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect("peminatan_list")
+    else:
+        form = PeminatanForm()
+    return render(request, "sijaku/dashboard/admin/peminatan_form.html", {"form": form})
+
+
+def peminatan_update(request, pk):
+    if not request.user.is_superuser:
+        return redirect("dashboard")
+    from .forms import PeminatanForm
+
+    peminatan = get_object_or_404(Peminatan, pk=pk)
+    if request.method == "POST":
+        form = PeminatanForm(request.POST, instance=peminatan)
+        if form.is_valid():
+            form.save()
+            return redirect("peminatan_list")
+    else:
+        form = PeminatanForm(instance=peminatan)
+    return render(
+        request,
+        "sijaku/dashboard/admin/peminatan_form.html",
+        {"form": form, "edit": True, "peminatan": peminatan},
+    )
+
+
+@require_http_methods(["POST"])
+def peminatan_delete(request, pk):
+    if not request.user.is_superuser:
+        return redirect("dashboard")
+    peminatan = get_object_or_404(Peminatan, pk=pk)
+    peminatan.delete()
+    return redirect("peminatan_list")

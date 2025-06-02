@@ -5,6 +5,7 @@ from .models import (
     Jabatan,
     MataKuliah,
     PemetaanDosenMK,
+    Peminatan,
     Ruangan,
     TahunAkademik,
 )
@@ -33,7 +34,7 @@ class JabatanForm(forms.ModelForm):
 class MataKuliahForm(forms.ModelForm):
     class Meta:
         model = MataKuliah
-        fields = ["kode", "nama", "sks", "semester"]
+        fields = ["kode", "nama", "sks", "semester", "tipe", "peminatan"]
         widgets = {
             "kode": forms.TextInput(attrs={"class": "input input-bordered w-full"}),
             "nama": forms.TextInput(attrs={"class": "input input-bordered w-full"}),
@@ -43,6 +44,8 @@ class MataKuliahForm(forms.ModelForm):
             "semester": forms.NumberInput(
                 attrs={"class": "input input-bordered w-full", "min": 1}
             ),
+            "tipe": forms.Select(attrs={"class": "select select-bordered w-full"}),
+            "peminatan": forms.Select(attrs={"class": "select select-bordered w-full"}),
         }
 
 
@@ -174,4 +177,14 @@ class PemetaanDosenMKForm(forms.ModelForm):
             "dosen_pengampu": forms.Select(
                 attrs={"class": "select select-bordered w-full"}
             ),
+        }
+
+
+class PeminatanForm(forms.ModelForm):
+    class Meta:
+        model = Peminatan
+        fields = ["kode", "nama"]
+        widgets = {
+            "kode": forms.TextInput(attrs={"class": "input input-bordered w-full"}),
+            "nama": forms.TextInput(attrs={"class": "input input-bordered w-full"}),
         }

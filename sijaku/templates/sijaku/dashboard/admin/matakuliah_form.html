@@ -30,6 +30,16 @@
                 {{ form.semester }}
                 {% if form.semester.errors %}<span class="text-error text-xs">{{ form.semester.errors|striptags }}</span>{% endif %}
             </div>
+            <div class="form-control w-full">
+                {{ form.tipe.label_tag }}
+                {{ form.tipe }}
+                {% if form.tipe.errors %}<span class="text-error text-xs">{{ form.tipe.errors|striptags }}</span>{% endif %}
+            </div>
+            <div class="form-control w-full">
+                {{ form.peminatan.label_tag }}
+                {{ form.peminatan }}
+                {% if form.peminatan.errors %}<span class="text-error text-xs">{{ form.peminatan.errors|striptags }}</span>{% endif %}
+            </div>
             <div class="flex gap-2">
                 <button type="submit" class="btn btn-primary">Simpan</button>
                 <a href="{% url 'matakuliah_list' %}" class="btn btn-secondary">Batal</a>
