@@ -21,11 +21,9 @@
                 {% if form.jenis.errors %}<span class="text-error text-xs">{{ form.jenis.errors|striptags }}</span>{% endif %}
             </div>
             <div class="form-control w-full">
-                {{ form.keterangan.label_tag }}
-                {{ form.keterangan }}
-                {% if form.keterangan.errors %}
-                    <span class="text-error text-xs">{{ form.keterangan.errors|striptags }}</span>
-                {% endif %}
+                {{ form.kapasitas.label_tag }}
+                {{ form.kapasitas }}
+                {% if form.kapasitas.errors %}<span class="text-error text-xs">{{ form.kapasitas.errors|striptags }}</span>{% endif %}
             </div>
             <div class="flex gap-2">
                 <button type="submit" class="btn btn-primary">Simpan</button>

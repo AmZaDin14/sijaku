@@ -140,14 +140,18 @@ class TahunAkademikForm(forms.ModelForm):
 
 
 class RuanganForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["kapasitas"].label = "Kapasitas (Kelas)"
+
     class Meta:
         model = Ruangan
-        fields = ["nama", "jenis", "keterangan"]
+        fields = ["nama", "jenis", "kapasitas"]
         widgets = {
             "nama": forms.TextInput(attrs={"class": "input input-bordered w-full"}),
             "jenis": forms.Select(attrs={"class": "select select-bordered w-full"}),
-            "keterangan": forms.Textarea(
-                attrs={"class": "textarea textarea-bordered w-full", "rows": 2}
+            "kapasitas": forms.NumberInput(
+                attrs={"class": "input input-bordered w-full", "min": 1}
             ),
         }
 

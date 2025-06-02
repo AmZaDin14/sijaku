@@ -115,7 +115,9 @@ class Ruangan(models.Model):
     ]
     nama = models.CharField(max_length=50, unique=True)
     jenis = models.CharField(max_length=10, choices=JENIS_CHOICES)
-    keterangan = models.TextField(blank=True, null=True)
+    kapasitas = models.PositiveIntegerField(
+        help_text="Jumlah kelas yang dapat ditampung"
+    )
 
     def __str__(self):
         jenis_display = dict(self.JENIS_CHOICES).get(self.jenis, self.jenis)

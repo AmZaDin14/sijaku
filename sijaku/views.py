@@ -425,13 +425,22 @@ def matakuliah_upload_excel(request):
                 nama = row.get("Nama")
                 sks = row.get("SKS")
                 semester = row.get("Semester")
-                if kode and nama and sks and semester:
+                tipe = row.get("Tipe")
+                peminatan_kode = row.get("Peminatan")
+                if kode and nama and sks and semester and tipe:
+                    peminatan = None
+                    if peminatan_kode and peminatan_kode != "-":
+                        peminatan = Peminatan.objects.filter(
+                            kode=peminatan_kode.strip()
+                        ).first()
                     MataKuliah.objects.get_or_create(
                         kode=kode.strip(),
                         defaults={
                             "nama": nama.strip(),
                             "sks": int(sks),
                             "semester": int(semester),
+                            "tipe": tipe.strip(),
+                            "peminatan": peminatan,
                         },
                     )
                     count += 1
@@ -515,3 +524,34 @@ def peminatan_delete(request, pk):
     peminatan = get_object_or_404(Peminatan, pk=pk)
     peminatan.delete()
     return redirect("peminatan_list")
+
+
+@require_http_methods(["POST"])
+def ruangan_upload_csv(request):
+    if not request.user.is_superuser:
+        return redirect("dashboard")
+    if request.method == "POST" and request.FILES.get("csv_file"):
+        file = request.FILES["csv_file"]
+        if file.name.endswith(".csv"):
+            decoded = file.read().decode("utf-8").splitlines()
+            reader = csv.DictReader(decoded)
+            count = 0
+            for row in reader:
+                nama = row.get("Nama")
+                jenis = row.get("Jenis")
+                kapasitas = row.get("Kapasitas")
+                if nama and jenis and kapasitas:
+                    Ruangan.objects.get_or_create(
+                        nama=nama.strip(),
+                        defaults={
+                            "jenis": jenis.strip(),
+                            "kapasitas": int(kapasitas),
+                        },
+                    )
+                    count += 1
+            messages.success(
+                request, f"Berhasil menambahkan {count} ruangan dari file."
+            )
+        else:
+            messages.error(request, "Format file harus CSV.")
+    return redirect("ruangan_list")

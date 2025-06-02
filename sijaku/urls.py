@@ -66,6 +66,11 @@ urlpatterns = [
         views.ruangan_delete,
         name="ruangan_delete",
     ),
+    path(
+        "dashboard/ruangan/upload-csv/",
+        views.ruangan_upload_csv,
+        name="ruangan_upload_csv",
+    ),
     # Pemetaan Dosen-MK
     path("dashboard/pemetaan/", views.pemetaan_list, name="pemetaan_list"),
     path(
