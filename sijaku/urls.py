@@ -65,7 +65,7 @@ urlpatterns = [
     path("dashboard/pemetaan/", views.pemetaan_list, name="pemetaan_list"),
     path(
         "dashboard/pemetaan/tambah-mk/",
-        views.pemetaan_tambah_mk,
+        views.pemetaan_edit_mk,
         name="pemetaan_tambah_mk",
     ),
 ]

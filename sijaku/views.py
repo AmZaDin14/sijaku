@@ -320,7 +320,7 @@ def pemetaan_list(request):
     )
 
 
-def pemetaan_tambah_mk(request):
+def pemetaan_edit_mk(request):
     if not is_kaprodi(request.user):
         return redirect("dashboard")
     tahun_aktif = TahunAkademik.objects.filter(aktif=True).first()
@@ -367,7 +367,7 @@ def pemetaan_tambah_mk(request):
         return redirect("pemetaan_list")
     return render(
         request,
-        "sijaku/dashboard/admin/pemetaan_tambah_mk.html",
+        "sijaku/dashboard/admin/pemetaan_edit_mk.html",
         {
             "tahun_aktif": tahun_aktif,
             "available_mk": json.dumps(available_mk),
