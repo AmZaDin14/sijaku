@@ -1,3 +1,4 @@
+import csv
 import json
 
 from django.contrib import messages
@@ -6,7 +7,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.views.decorators.http import require_http_methods
 
-from .forms import DosenForm, PemetaanDosenMKForm
+from .forms import DosenForm
 from .models import (
     Dosen,
     Jabatan,
@@ -373,3 +374,36 @@ def pemetaan_tambah_mk(request):
             "selected_mk": json.dumps(selected_mk),
         },
     )
+
+
+def matakuliah_upload_excel(request):
+    if not request.user.is_superuser:
+        return redirect("dashboard")
+    if request.method == "POST" and request.FILES.get("excel_file"):
+        file = request.FILES["excel_file"]
+        # Support CSV only for simplicity
+        if file.name.endswith(".csv"):
+            decoded = file.read().decode("utf-8").splitlines()
+            reader = csv.DictReader(decoded)
+            count = 0
+            for row in reader:
+                kode = row.get("Kode")
+                nama = row.get("Nama")
+                sks = row.get("SKS")
+                semester = row.get("Semester")
+                if kode and nama and sks and semester:
+                    MataKuliah.objects.get_or_create(
+                        kode=kode.strip(),
+                        defaults={
+                            "nama": nama.strip(),
+                            "sks": int(sks),
+                            "semester": int(semester),
+                        },
+                    )
+                    count += 1
+            messages.success(
+                request, f"Berhasil menambahkan {count} mata kuliah dari file."
+            )
+        else:
+            messages.error(request, "Format file tidak didukung. Upload file .csv.")
+    return redirect("matakuliah_list")

@@ -26,6 +26,11 @@ urlpatterns = [
         views.matakuliah_delete,
         name="matakuliah_delete",
     ),
+    path(
+        "dashboard/matakuliah/upload-excel/",
+        views.matakuliah_upload_excel,
+        name="matakuliah_upload_excel",
+    ),
     # CRUD Tahun Akademik
     path(
         "dashboard/tahunakademik/", views.tahunakademik_list, name="tahunakademik_list"
