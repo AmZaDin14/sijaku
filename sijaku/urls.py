@@ -68,4 +68,9 @@ urlpatterns = [
         views.pemetaan_edit_mk,
         name="pemetaan_tambah_mk",
     ),
+    path(
+        "dashboard/pemetaan/edit-dosen/<int:pk>/",
+        views.pemetaan_edit_dosen,
+        name="pemetaan_edit_dosen",
+    ),
 ]

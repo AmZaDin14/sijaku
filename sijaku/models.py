@@ -49,7 +49,7 @@ class MataKuliah(models.Model):
     semester = models.PositiveSmallIntegerField(default=1)
 
     def __str__(self):
-        return f"{self.kode} - {self.nama}"
+        return f"{self.nama}"
 
     class Meta:
         verbose_name = "Mata Kuliah"

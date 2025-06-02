@@ -1,6 +1,7 @@
 import csv
 import json
 
+from django import forms
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, redirect, render
@@ -373,6 +374,38 @@ def pemetaan_edit_mk(request):
             "available_mk": json.dumps(available_mk),
             "selected_mk": json.dumps(selected_mk),
         },
+    )
+
+
+def pemetaan_edit_dosen(request, pk):
+    if not is_kaprodi(request.user):
+        return redirect("dashboard")
+    pemetaan = PemetaanDosenMK.objects.select_related(
+        "matakuliah", "dosen_pengampu"
+    ).get(pk=pk)
+
+    class EditDosenForm(forms.ModelForm):
+        class Meta:
+            model = PemetaanDosenMK
+            fields = ["dosen_pengampu"]
+            widgets = {
+                "dosen_pengampu": forms.Select(
+                    attrs={"class": "select select-bordered w-full"}
+                ),
+            }
+
+    if request.method == "POST":
+        form = EditDosenForm(request.POST, instance=pemetaan)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Dosen pengampu berhasil diubah.")
+            return redirect("pemetaan_list")
+    else:
+        form = EditDosenForm(instance=pemetaan)
+    return render(
+        request,
+        "sijaku/dashboard/admin/pemetaan_edit_dosen.html",
+        {"form": form, "pemetaan": pemetaan},
     )
 
 
