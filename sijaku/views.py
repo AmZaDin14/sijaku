@@ -1,10 +1,20 @@
-from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.decorators import login_required
-from .models import Dosen, Jabatan, MataKuliah, TahunAkademik, Ruangan
-from .forms import DosenForm
-from django.urls import reverse
+import json
+
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.views.decorators.http import require_http_methods
+
+from .forms import DosenForm, PemetaanDosenMKForm
+from .models import (
+    Dosen,
+    Jabatan,
+    MataKuliah,
+    PemetaanDosenMK,
+    Ruangan,
+    TahunAkademik,
+)
 
 
 def index(request):
@@ -289,3 +299,77 @@ def ruangan_delete(request, pk):
     ruangan.delete()
     messages.success(request, "Ruangan berhasil dihapus.")
     return redirect("ruangan_list")
+
+
+def pemetaan_list(request):
+    if not is_kaprodi(request.user):
+        return redirect("dashboard")
+    tahun_aktif = TahunAkademik.objects.filter(aktif=True).first()
+    if not tahun_aktif:
+        return render(
+            request, "sijaku/dashboard/admin/pemetaan.html", {"tahun_aktif": None}
+        )
+    daftar = PemetaanDosenMK.objects.filter(tahun_akademik=tahun_aktif).select_related(
+        "matakuliah", "dosen_pengampu"
+    )
+    return render(
+        request,
+        "sijaku/dashboard/admin/pemetaan.html",
+        {"tahun_aktif": tahun_aktif, "pemetaan_list": daftar},
+    )
+
+
+def pemetaan_tambah_mk(request):
+    if not is_kaprodi(request.user):
+        return redirect("dashboard")
+    tahun_aktif = TahunAkademik.objects.filter(aktif=True).first()
+    if not tahun_aktif:
+        return redirect("pemetaan_list")
+    if tahun_aktif.semester == "genap":
+        matakuliah_qs = MataKuliah.objects.filter(semester__in=[2, 4, 6, 8, 10, 12, 14])
+    else:
+        matakuliah_qs = MataKuliah.objects.filter(semester__in=[1, 3, 5, 7, 9, 11, 13])
+    # Exclude MK yang sudah ada di tahun aktif
+    existing_ids = set(
+        PemetaanDosenMK.objects.filter(tahun_akademik=tahun_aktif).values_list(
+            "matakuliah_id", flat=True
+        )
+    )
+    # Mata kuliah yang sudah dipetakan (selected)
+    selected_mk = [
+        {"id": mk.pk, "label": f"{mk.kode} - {mk.nama}", "_checked": False}
+        for mk in matakuliah_qs
+        if mk.pk in existing_ids
+    ]
+    # Mata kuliah yang belum dipetakan (available)
+    available_mk = [
+        {"id": mk.pk, "label": f"{mk.kode} - {mk.nama}", "_checked": False}
+        for mk in matakuliah_qs
+        if mk.pk not in existing_ids
+    ]
+    if request.method == "POST":
+        mk_ids = set(map(int, request.POST.getlist("matakuliah_ids")))
+        # Tambah yang baru dipilih
+        for mk_id in mk_ids:
+            if not PemetaanDosenMK.objects.filter(
+                tahun_akademik=tahun_aktif, matakuliah_id=mk_id
+            ).exists():
+                PemetaanDosenMK.objects.create(
+                    tahun_akademik=tahun_aktif, matakuliah_id=mk_id
+                )
+        # Hapus yang tidak dipilih lagi
+        for mk_id in existing_ids:
+            if mk_id not in mk_ids:
+                PemetaanDosenMK.objects.filter(
+                    tahun_akademik=tahun_aktif, matakuliah_id=mk_id
+                ).delete()
+        return redirect("pemetaan_list")
+    return render(
+        request,
+        "sijaku/dashboard/admin/pemetaan_tambah_mk.html",
+        {
+            "tahun_aktif": tahun_aktif,
+            "available_mk": json.dumps(available_mk),
+            "selected_mk": json.dumps(selected_mk),
+        },
+    )

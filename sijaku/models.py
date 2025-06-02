@@ -96,3 +96,28 @@ class Ruangan(models.Model):
         verbose_name = "Ruangan"
         verbose_name_plural = "Ruangan"
         ordering = ["nama"]
+
+
+class PemetaanDosenMK(models.Model):
+    tahun_akademik = models.ForeignKey(
+        TahunAkademik, on_delete=models.CASCADE, related_name="penyelenggaraan"
+    )
+    matakuliah = models.ForeignKey(
+        MataKuliah, on_delete=models.CASCADE, related_name="penyelenggaraan"
+    )
+    dosen_pengampu = models.ForeignKey(
+        Dosen,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="pengampu_matakuliah",
+    )
+
+    class Meta:
+        verbose_name = "Pemetaan Dosen-MK"
+        verbose_name_plural = "Pemetaan Dosen-MK"
+        unique_together = ("tahun_akademik", "matakuliah")
+        ordering = ["tahun_akademik", "matakuliah"]
+
+    def __str__(self):
+        return f"{self.matakuliah} ({self.tahun_akademik})"

@@ -1,0 +1,70 @@
+{% extends "sijaku/dashboard/base.html" %}
+{% block dashboard_content %}
+<div class="container mx-auto p-4 max-w-2xl">
+  <h1 class="text-2xl font-bold mb-4">Edit Mata Kuliah Tahun Akademik Aktif</h1>
+  <div class="mb-2 text-sm text-base-content/70">
+    Tahun Akademik Aktif: <span class="font-semibold">{{ tahun_aktif.tahun }} ({{ tahun_aktif.get_semester_display }})</span>
+  </div>
+  <form method="post" x-data='pemetaanMK()'>
+    {% csrf_token %}
+    <div class="flex gap-4">
+      <div class="w-1/2">
+        <label class="label font-semibold text-xs">Mata Kuliah Tersedia</label>
+        <ul class="menu bg-base-200 rounded-box max-h-64 overflow-y-auto text-xs">
+          <template x-for="mk in available" :key="mk.id">
+            <li class="py-1 px-2">
+              <label class="flex items-center gap-2 cursor-pointer">
+                <input type="checkbox" x-model="mk._checked" class="checkbox checkbox-primary checkbox-xs">
+                <span x-text="mk.label" class="text-xs"></span>
+              </label>
+            </li>
+          </template>
+        </ul>
+      </div>
+      <div class="flex flex-col justify-center gap-2">
+        <button type="button" class="btn btn-primary btn-xs" @click="moveToSelected()">&gt;&gt;</button>
+        <button type="button" class="btn btn-secondary btn-xs" @click="moveToAvailable()">&lt;&lt;</button>
+      </div>
+      <div class="w-1/2">
+        <label class="label font-semibold text-xs">Mata Kuliah Dipilih</label>
+        <ul class="menu bg-base-200 rounded-box max-h-64 overflow-y-auto text-xs">
+          <template x-for="mk in selected" :key="mk.id">
+            <li class="py-1 px-2">
+              <label class="flex items-center gap-2 cursor-pointer">
+                <input type="checkbox" x-model="mk._checked" class="checkbox checkbox-primary checkbox-xs">
+                <span x-text="mk.label" class="text-xs"></span>
+                <input type="hidden" name="matakuliah_ids" :value="mk.id">
+              </label>
+            </li>
+          </template>
+        </ul>
+      </div>
+    </div>
+    <div class="flex gap-2 mt-4">
+      <button type="submit" class="btn btn-primary btn-sm">Simpan</button>
+      <a href="{% url 'pemetaan_list' %}" class="btn btn-secondary btn-sm">Batal</a>
+    </div>
+  </form>
+</div>
+<script>
+function pemetaanMK() {
+  return {
+    available: {{ available_mk|safe }},
+    selected: {{ selected_mk|default:'[]'|safe }},
+    moveToSelected() {
+      let toMove = this.available.filter(mk => mk._checked);
+      toMove.forEach(mk => mk._checked = false);
+      this.selected = this.selected.concat(toMove);
+      this.available = this.available.filter(mk => !toMove.includes(mk));
+    },
+    moveToAvailable() {
+      let toMove = this.selected.filter(mk => mk._checked);
+      toMove.forEach(mk => mk._checked = false);
+      this.available = this.available.concat(toMove);
+      this.selected = this.selected.filter(mk => !toMove.includes(mk));
+    }
+  }
+}
+</script>
+<script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+{% endblock %}

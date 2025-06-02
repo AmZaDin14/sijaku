@@ -1,4 +1,5 @@
 from django.urls import path
+
 from . import views
 
 urlpatterns = [
@@ -54,5 +55,12 @@ urlpatterns = [
         "dashboard/ruangan/delete/<int:pk>/",
         views.ruangan_delete,
         name="ruangan_delete",
+    ),
+    # Pemetaan Dosen-MK
+    path("dashboard/pemetaan/", views.pemetaan_list, name="pemetaan_list"),
+    path(
+        "dashboard/pemetaan/tambah-mk/",
+        views.pemetaan_tambah_mk,
+        name="pemetaan_tambah_mk",
     ),
 ]

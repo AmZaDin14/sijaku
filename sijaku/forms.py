@@ -1,6 +1,13 @@
 from django import forms
 
-from .models import Dosen, Jabatan, MataKuliah, Ruangan, TahunAkademik
+from .models import (
+    Dosen,
+    Jabatan,
+    MataKuliah,
+    PemetaanDosenMK,
+    Ruangan,
+    TahunAkademik,
+)
 
 
 class DosenForm(forms.ModelForm):
@@ -138,5 +145,33 @@ class RuanganForm(forms.ModelForm):
             "jenis": forms.Select(attrs={"class": "select select-bordered w-full"}),
             "keterangan": forms.Textarea(
                 attrs={"class": "textarea textarea-bordered w-full", "rows": 2}
+            ),
+        }
+
+
+class PemetaanDosenMKForm(forms.ModelForm):
+    def __init__(self, *args, matakuliah_qs=None, dosen_qs=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        if matakuliah_qs is not None:
+            self.fields["matakuliah"] = forms.ModelChoiceField(
+                queryset=matakuliah_qs,
+                widget=forms.Select(attrs={"class": "select select-bordered w-full"}),
+            )
+        if dosen_qs is not None:
+            self.fields["dosen_pengampu"] = forms.ModelChoiceField(
+                queryset=dosen_qs,
+                required=False,
+                widget=forms.Select(attrs={"class": "select select-bordered w-full"}),
+            )
+
+    class Meta:
+        model = PemetaanDosenMK
+        fields = ["matakuliah", "dosen_pengampu"]
+        widgets = {
+            "matakuliah": forms.Select(
+                attrs={"class": "select select-bordered w-full"}
+            ),
+            "dosen_pengampu": forms.Select(
+                attrs={"class": "select select-bordered w-full"}
             ),
         }

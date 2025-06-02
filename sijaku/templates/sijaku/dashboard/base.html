@@ -53,6 +53,10 @@
                                 <a class="menu-item{% if request.path == '/dashboard/tahunakademik/' %} active{% endif %}"
                                    href="{% url 'tahunakademik_list' %}">Tahun Akademik</a>
                             </li>
+                            <li>
+                                <a class="menu-item{% if request.path == '/dashboard/pemetaan/' %} active{% endif %}"
+                                   href="{% url 'pemetaan_list' %}">Pemetaan Dosen-MK</a>
+                            </li>
                         {% endif %}
                         <!-- Tambahkan menu lain di sini -->
                     </ul>
