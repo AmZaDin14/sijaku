@@ -12,6 +12,7 @@ from .forms import DosenForm
 from .models import (
     Dosen,
     Jabatan,
+    Kelas,
     MataKuliah,
     PemetaanDosenMK,
     Peminatan,  # pastikan sudah diimpor
@@ -555,3 +556,86 @@ def ruangan_upload_csv(request):
         else:
             messages.error(request, "Format file harus CSV.")
     return redirect("ruangan_list")
+
+
+def kelas_list(request):
+    if not request.user.is_superuser:
+        return redirect("dashboard")
+    daftar = Kelas.objects.select_related("peminatan").all()
+    return render(request, "sijaku/dashboard/admin/kelas.html", {"kelas_list": daftar})
+
+
+def kelas_create(request):
+    if not request.user.is_superuser:
+        return redirect("dashboard")
+    from .forms import KelasForm
+
+    if request.method == "POST":
+        form = KelasForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect("kelas_list")
+    else:
+        form = KelasForm()
+    return render(request, "sijaku/dashboard/admin/kelas_form.html", {"form": form})
+
+
+def kelas_update(request, pk):
+    if not request.user.is_superuser:
+        return redirect("dashboard")
+    from .forms import KelasForm
+
+    kelas = get_object_or_404(Kelas, pk=pk)
+    if request.method == "POST":
+        form = KelasForm(request.POST, instance=kelas)
+        if form.is_valid():
+            form.save()
+            return redirect("kelas_list")
+    else:
+        form = KelasForm(instance=kelas)
+    return render(
+        request,
+        "sijaku/dashboard/admin/kelas_form.html",
+        {"form": form, "edit": True, "kelas": kelas},
+    )
+
+
+@require_http_methods(["POST"])
+def kelas_delete(request, pk):
+    if not request.user.is_superuser:
+        return redirect("dashboard")
+    kelas = get_object_or_404(Kelas, pk=pk)
+    kelas.delete()
+    return redirect("kelas_list")
+
+
+@require_http_methods(["POST"])
+def kelas_upload_csv(request):
+    if not request.user.is_superuser:
+        return redirect("dashboard")
+    if request.method == "POST" and request.FILES.get("csv_file"):
+        file = request.FILES["csv_file"]
+        if file.name.endswith(".csv"):
+            decoded = file.read().decode("utf-8").splitlines()
+            reader = csv.DictReader(decoded)
+            count = 0
+            for row in reader:
+                tahun_angkatan = row.get("Tahun Angkatan")
+                nama = row.get("Nama")
+                peminatan_kode = row.get("Peminatan")
+                if tahun_angkatan and nama:
+                    peminatan = None
+                    if peminatan_kode and peminatan_kode != "-":
+                        peminatan = Peminatan.objects.filter(
+                            kode=peminatan_kode.strip()
+                        ).first()
+                    Kelas.objects.get_or_create(
+                        tahun_angkatan=int(tahun_angkatan),
+                        nama=nama.strip(),
+                        defaults={"peminatan": peminatan},
+                    )
+                    count += 1
+            messages.success(request, f"Berhasil menambahkan {count} kelas dari file.")
+        else:
+            messages.error(request, "Format file harus CSV.")
+    return redirect("kelas_list")

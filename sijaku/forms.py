@@ -3,6 +3,7 @@ from django import forms
 from .models import (
     Dosen,
     Jabatan,
+    Kelas,
     MataKuliah,
     PemetaanDosenMK,
     Peminatan,
@@ -191,4 +192,17 @@ class PeminatanForm(forms.ModelForm):
         widgets = {
             "kode": forms.TextInput(attrs={"class": "input input-bordered w-full"}),
             "nama": forms.TextInput(attrs={"class": "input input-bordered w-full"}),
+        }
+
+
+class KelasForm(forms.ModelForm):
+    class Meta:
+        model = Kelas
+        fields = ["tahun_angkatan", "nama", "peminatan"]
+        widgets = {
+            "tahun_angkatan": forms.NumberInput(
+                attrs={"class": "input input-bordered w-full", "min": 2000}
+            ),
+            "nama": forms.TextInput(attrs={"class": "input input-bordered w-full"}),
+            "peminatan": forms.Select(attrs={"class": "select select-bordered w-full"}),
         }

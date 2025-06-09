@@ -98,4 +98,12 @@ urlpatterns = [
         views.peminatan_delete,
         name="peminatan_delete",
     ),
+    # CRUD Kelas
+    path("dashboard/kelas/", views.kelas_list, name="kelas_list"),
+    path("dashboard/kelas/tambah/", views.kelas_create, name="kelas_create"),
+    path("dashboard/kelas/edit/<int:pk>/", views.kelas_update, name="kelas_update"),
+    path("dashboard/kelas/delete/<int:pk>/", views.kelas_delete, name="kelas_delete"),
+    path(
+        "dashboard/kelas/upload-csv/", views.kelas_upload_csv, name="kelas_upload_csv"
+    ),
 ]

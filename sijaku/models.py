@@ -152,3 +152,28 @@ class PemetaanDosenMK(models.Model):
 
     def __str__(self):
         return f"{self.matakuliah} ({self.tahun_akademik})"
+
+
+class Kelas(models.Model):
+    tahun_angkatan = models.PositiveIntegerField(
+        help_text="Tahun angkatan mahasiswa, misal 2023 untuk mahasiswa angkatan 2023",
+    )
+    nama = models.CharField(
+        max_length=20,
+        unique=True,
+        help_text="Contoh: A, B, C",
+    )
+    peminatan = models.ForeignKey(
+        Peminatan,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="kelas",
+        help_text="Kosongkan jika ini adalah kelas umum (bukan peminatan).",
+    )
+
+    class Meta:
+        verbose_name = "Kelas"
+        verbose_name_plural = "Kelas"
+        ordering = ["tahun_angkatan", "nama"]
+        unique_together = ("tahun_angkatan", "nama")

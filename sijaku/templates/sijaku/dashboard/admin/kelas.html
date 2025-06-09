@@ -1,0 +1,50 @@
+{% extends "sijaku/dashboard/base.html" %}
+{% load static %}
+{% block dashboard_content %}
+<div class="max-w-3xl mx-auto p-4">
+    <div class="flex items-center justify-between mb-6">
+        <h1 class="text-3xl font-extrabold tracking-tight">Daftar Kelas</h1>
+        <div class="flex gap-2">
+            <a href="{% url 'kelas_create' %}" class="btn btn-primary btn-sm shadow-md">Tambah Kelas</a>
+        </div>
+    </div>
+    <form method="post" enctype="multipart/form-data" action="{% url 'kelas_upload_csv' %}" class="mb-4 flex gap-2 items-center flex-wrap">
+        {% csrf_token %}
+        <input type="file" name="csv_file" accept=".csv" class="file-input file-input-bordered file-input-sm" required>
+        <button type="submit" class="btn btn-accent btn-sm">Upload Data</button>
+        <a href="{% static 'sijaku/template_kelas.csv' %}" download class="btn btn-outline btn-success btn-sm">Download Template</a>
+    </form>
+    <div class="overflow-x-auto rounded-xl shadow-lg bg-base-100">
+        <table class="table table-zebra w-full">
+            <thead class="bg-base-200 text-base-content">
+                <tr>
+                    <th class="px-4 py-3 text-left">Tahun Angkatan</th>
+                    <th class="px-4 py-3 text-left">Nama</th>
+                    <th class="px-4 py-3 text-left">Peminatan</th>
+                    <th class="px-4 py-3 text-center">Aksi</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for k in kelas_list %}
+                <tr class="hover">
+                    <td class="px-4 py-2">{{ k.tahun_angkatan }}</td>
+                    <td class="px-4 py-2">{{ k.nama }}</td>
+                    <td class="px-4 py-2">{{ k.peminatan|default:"-" }}</td>
+                    <td class="px-4 py-2 flex gap-2 justify-center">
+                        <a href="{% url 'kelas_update' k.pk %}" class="btn btn-warning btn-xs shadow">Edit</a>
+                        <form method="post" action="{% url 'kelas_delete' k.pk %}" style="display:inline">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-error btn-xs shadow" onclick="return confirm('Yakin hapus?')">Hapus</button>
+                        </form>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="text-center py-6 text-base-content/60">Belum ada data kelas.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

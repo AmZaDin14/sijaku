@@ -47,6 +47,10 @@
                                 <a class="menu-item{% if request.path == '/dashboard/ruangan/' %} active{% endif %}"
                                    href="{% url 'ruangan_list' %}">Data Ruangan</a>
                             </li>
+                            <li>
+                                <a class="menu-item{% if request.path == '/dashboard/kelas/' %} active{% endif %}"
+                                   href="{% url 'kelas_list' %}">Data Kelas</a>
+                            </li>
                         {% endif %}
                         {% if request.user.is_authenticated and request.user|is_kaprodi %}
                             <li>
