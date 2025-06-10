@@ -64,6 +64,12 @@
                                     <span class="material-icons text-primary">groups</span> Data Kelas
                                 </a>
                             </li>
+                            <li>
+                                <a class="menu-item flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-primary/20 transition{% if request.path == '/dashboard/jadwalharian/' %} bg-primary/10 font-bold text-primary{% endif %}"
+                                   href="{% url 'jadwalharian_list' %}">
+                                    <span class="material-icons text-primary">calendar_today</span> Jadwal Harian
+                                </a>
+                            </li>
                         {% endif %}
                         {% if request.user.is_authenticated and request.user|is_kaprodi %}
                             <li>

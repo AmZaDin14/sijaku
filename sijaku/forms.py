@@ -3,6 +3,7 @@ from django import forms
 from .models import (
     Dosen,
     Jabatan,
+    JadwalHarian,
     Kelas,
     MataKuliah,
     PemetaanDosenMK,
@@ -205,4 +206,31 @@ class KelasForm(forms.ModelForm):
             ),
             "nama": forms.TextInput(attrs={"class": "input input-bordered w-full"}),
             "peminatan": forms.Select(attrs={"class": "select select-bordered w-full"}),
+        }
+
+
+class JadwalHarianForm(forms.ModelForm):
+    class Meta:
+        model = JadwalHarian
+        fields = [
+            "hari",
+            "jam_mulai",
+            "jam_selesai",
+            "istirahat_mulai",
+            "istirahat_selesai",
+        ]
+        widgets = {
+            "hari": forms.Select(attrs={"class": "select select-bordered w-full"}),
+            "jam_mulai": forms.TimeInput(
+                attrs={"class": "input input-bordered w-full", "type": "time"}
+            ),
+            "jam_selesai": forms.TimeInput(
+                attrs={"class": "input input-bordered w-full", "type": "time"}
+            ),
+            "istirahat_mulai": forms.TimeInput(
+                attrs={"class": "input input-bordered w-full", "type": "time"}
+            ),
+            "istirahat_selesai": forms.TimeInput(
+                attrs={"class": "input input-bordered w-full", "type": "time"}
+            ),
         }

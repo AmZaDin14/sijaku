@@ -8,10 +8,11 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.views.decorators.http import require_http_methods
 
-from .forms import DosenForm
+from .forms import DosenForm, JadwalHarianForm
 from .models import (
     Dosen,
     Jabatan,
+    JadwalHarian,
     Kelas,
     MataKuliah,
     PemetaanDosenMK,
@@ -639,3 +640,105 @@ def kelas_upload_csv(request):
         else:
             messages.error(request, "Format file harus CSV.")
     return redirect("kelas_list")
+
+
+def jadwalharian_list(request):
+    if not request.user.is_superuser:
+        return redirect("dashboard")
+    jadwal = JadwalHarian.objects.all()
+    return render(
+        request,
+        "sijaku/dashboard/admin/jadwalharian.html",
+        {"jadwalharian_list": jadwal},
+    )
+
+
+def jadwalharian_create(request):
+    if not request.user.is_superuser:
+        return redirect("dashboard")
+    if request.method == "POST":
+        form = JadwalHarianForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect("jadwalharian_list")
+    else:
+        form = JadwalHarianForm()
+    return render(
+        request, "sijaku/dashboard/admin/jadwalharian_form.html", {"form": form}
+    )
+
+
+def jadwalharian_update(request, pk):
+    if not request.user.is_superuser:
+        return redirect("dashboard")
+    jadwal = get_object_or_404(JadwalHarian, pk=pk)
+    if request.method == "POST":
+        form = JadwalHarianForm(request.POST, instance=jadwal)
+        if form.is_valid():
+            form.save()
+            return redirect("jadwalharian_list")
+    else:
+        form = JadwalHarianForm(instance=jadwal)
+    return render(
+        request,
+        "sijaku/dashboard/admin/jadwalharian_form.html",
+        {"form": form, "edit": True, "jadwalharian": jadwal},
+    )
+
+
+@require_http_methods(["POST"])
+def jadwalharian_delete(request, pk):
+    if not request.user.is_superuser:
+        return redirect("dashboard")
+    jadwal = get_object_or_404(JadwalHarian, pk=pk)
+    jadwal.delete()
+    messages.success(request, "Jadwal Harian berhasil dihapus.")
+    return redirect("jadwalharian_list")
+
+
+def jadwalharian_upload_csv(request):
+    if not request.user.is_superuser:
+        return redirect("dashboard")
+    if request.method == "POST" and request.FILES.get("csv_file"):
+        file = request.FILES["csv_file"]
+        if file.name.endswith(".csv"):
+            decoded = file.read().decode("utf-8").splitlines()
+            reader = csv.DictReader(decoded)
+            count = 0
+            for row in reader:
+                hari = row.get("Hari")
+                jam_mulai = row.get("Jam Mulai")
+                jam_selesai = row.get("Jam Selesai")
+                istirahat_mulai = row.get("Istirahat Mulai")
+                istirahat_selesai = row.get("Istirahat Selesai")
+                if (
+                    hari is not None
+                    and jam_mulai
+                    and jam_selesai
+                    and istirahat_mulai
+                    and istirahat_selesai
+                ):
+                    # Cari index hari dari pilihan HARI_CHOICES
+                    hari_idx = None
+                    for idx, label in JadwalHarian.HARI_CHOICES:
+                        if label.lower() == hari.strip().lower():
+                            hari_idx = idx
+                            break
+                    if hari_idx is not None:
+                        obj, created = JadwalHarian.objects.update_or_create(
+                            hari=hari_idx,
+                            defaults={
+                                "jam_mulai": jam_mulai,
+                                "jam_selesai": jam_selesai,
+                                "istirahat_mulai": istirahat_mulai,
+                                "istirahat_selesai": istirahat_selesai,
+                            },
+                        )
+                        count += 1
+            messages.success(
+                request,
+                f"Berhasil menambahkan/memperbarui {count} jadwal harian dari file.",
+            )
+        else:
+            messages.error(request, "Format file tidak didukung. Upload file .csv.")
+    return redirect("jadwalharian_list")

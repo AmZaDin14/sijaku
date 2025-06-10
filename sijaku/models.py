@@ -177,3 +177,32 @@ class Kelas(models.Model):
         verbose_name_plural = "Kelas"
         ordering = ["tahun_angkatan", "nama"]
         unique_together = ("tahun_angkatan", "nama")
+
+
+class JadwalHarian(models.Model):
+    HARI_CHOICES = [
+        (0, "Senin"),
+        (1, "Selasa"),
+        (2, "Rabu"),
+        (3, "Kamis"),
+        (4, "Jumat"),
+        (5, "Sabtu"),
+        (6, "Minggu"),
+    ]
+
+    hari = models.PositiveSmallIntegerField(
+        choices=HARI_CHOICES,
+        unique=True,
+    )
+    jam_mulai = models.TimeField()
+    jam_selesai = models.TimeField()
+    istirahat_mulai = models.TimeField(help_text="Waktu mulai istirahat")
+    istirahat_selesai = models.TimeField(help_text="Waktu selesai istirahat")
+
+    def __str__(self):
+        return self.get_hari_display()  # type: ignore
+
+    class Meta:
+        verbose_name = "Jadwal Harian"
+        verbose_name_plural = "Pengaturan Jadwal Harian"
+        ordering = ["hari"]

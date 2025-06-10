@@ -1,0 +1,44 @@
+{% extends "sijaku/dashboard/base.html" %}
+{% block dashboard_content %}
+    <div class="container mx-auto p-4 max-w-lg">
+        <h1 class="text-2xl font-bold mb-4">
+            {% if edit %}
+                Edit Jadwal Harian
+            {% else %}
+                Tambah Jadwal Harian
+            {% endif %}
+        </h1>
+        <form method="post" class="space-y-4">
+            {% csrf_token %}
+            <div class="form-control w-full">
+                {{ form.hari.label_tag }}
+                {{ form.hari }}
+                {% if form.hari.errors %}<span class="text-error text-xs">{{ form.hari.errors|striptags }}</span>{% endif %}
+            </div>
+            <div class="form-control w-full">
+                {{ form.jam_mulai.label_tag }}
+                {{ form.jam_mulai }}
+                {% if form.jam_mulai.errors %}<span class="text-error text-xs">{{ form.jam_mulai.errors|striptags }}</span>{% endif %}
+            </div>
+            <div class="form-control w-full">
+                {{ form.jam_selesai.label_tag }}
+                {{ form.jam_selesai }}
+                {% if form.jam_selesai.errors %}<span class="text-error text-xs">{{ form.jam_selesai.errors|striptags }}</span>{% endif %}
+            </div>
+            <div class="form-control w-full">
+                {{ form.istirahat_mulai.label_tag }}
+                {{ form.istirahat_mulai }}
+                {% if form.istirahat_mulai.errors %}<span class="text-error text-xs">{{ form.istirahat_mulai.errors|striptags }}</span>{% endif %}
+            </div>
+            <div class="form-control w-full">
+                {{ form.istirahat_selesai.label_tag }}
+                {{ form.istirahat_selesai }}
+                {% if form.istirahat_selesai.errors %}<span class="text-error text-xs">{{ form.istirahat_selesai.errors|striptags }}</span>{% endif %}
+            </div>
+            <div class="flex gap-2">
+                <button type="submit" class="btn btn-primary">Simpan</button>
+                <a href="{% url 'jadwalharian_list' %}" class="btn btn-secondary">Batal</a>
+            </div>
+        </form>
+    </div>
+{% endblock %}

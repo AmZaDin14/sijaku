@@ -106,4 +106,27 @@ urlpatterns = [
     path(
         "dashboard/kelas/upload-csv/", views.kelas_upload_csv, name="kelas_upload_csv"
     ),
+    # CRUD Jadwal Harian
+    path("dashboard/jadwalharian/", views.jadwalharian_list, name="jadwalharian_list"),
+    path(
+        "dashboard/jadwalharian/tambah/",
+        views.jadwalharian_create,
+        name="jadwalharian_create",
+    ),
+    path(
+        "dashboard/jadwalharian/edit/<int:pk>/",
+        views.jadwalharian_update,
+        name="jadwalharian_update",
+    ),
+    path(
+        "dashboard/jadwalharian/delete/<int:pk>/",
+        views.jadwalharian_delete,
+        name="jadwalharian_delete",
+    ),
+    # Upload Jadwal Harian via CSV
+    path(
+        "dashboard/jadwalharian/upload-csv/",
+        views.jadwalharian_upload_csv,
+        name="jadwalharian_upload_csv",
+    ),
 ]
