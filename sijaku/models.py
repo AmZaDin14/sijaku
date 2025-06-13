@@ -160,7 +160,6 @@ class Kelas(models.Model):
     )
     nama = models.CharField(
         max_length=20,
-        unique=True,
         help_text="Contoh: A, B, C",
     )
     peminatan = models.ForeignKey(
@@ -176,7 +175,7 @@ class Kelas(models.Model):
         verbose_name = "Kelas"
         verbose_name_plural = "Kelas"
         ordering = ["tahun_angkatan", "nama"]
-        unique_together = ("tahun_angkatan", "nama")
+        unique_together = ("tahun_angkatan", "nama", "peminatan")
 
 
 class JadwalHarian(models.Model):
@@ -206,3 +205,31 @@ class JadwalHarian(models.Model):
         verbose_name = "Jadwal Harian"
         verbose_name_plural = "Pengaturan Jadwal Harian"
         ordering = ["hari"]
+
+
+class Jadwal(models.Model):
+    HARI_CHOICES = JadwalHarian.HARI_CHOICES  # Menggunakan ulang choices
+    tahun_akademik = models.ForeignKey(
+        TahunAkademik, on_delete=models.CASCADE, related_name="jadwal_set"
+    )
+    matakuliah = models.ForeignKey(MataKuliah, on_delete=models.CASCADE)
+    dosen = models.ForeignKey(Dosen, on_delete=models.SET_NULL, null=True)
+    kelas = models.ForeignKey(Kelas, on_delete=models.CASCADE)
+    ruangan = models.ForeignKey(Ruangan, on_delete=models.SET_NULL, null=True)
+    hari = models.PositiveSmallIntegerField(choices=HARI_CHOICES)
+    jam_mulai = models.TimeField()
+    jam_selesai = models.TimeField()
+
+    def __str__(self):
+        hari_display = self.get_hari_display()  # type: ignore
+        return f"{self.matakuliah.nama} - {self.kelas} ({hari_display}, {self.jam_mulai:%H:%M}-{self.jam_selesai:%H:%M})"
+
+    class Meta:
+        verbose_name = "Jadwal Kuliah (Hasil)"
+        verbose_name_plural = "Jadwal Kuliah (Hasil)"
+        ordering = ["tahun_akademik", "hari", "jam_mulai", "kelas"]
+        unique_together = [
+            ("tahun_akademik", "hari", "jam_mulai", "ruangan"),
+            ("tahun_akademik", "hari", "jam_mulai", "kelas"),
+            ("tahun_akademik", "hari", "jam_mulai", "dosen"),
+        ]
