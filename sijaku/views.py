@@ -1,17 +1,21 @@
 import csv
 import json
+from collections import defaultdict
+from datetime import datetime, time, timedelta
 
 from django import forms
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
+from django.views import View
 from django.views.decorators.http import require_http_methods
 
 from .forms import DosenForm, JadwalHarianForm
 from .models import (
     Dosen,
     Jabatan,
+    Jadwal,
     JadwalHarian,
     Kelas,
     MataKuliah,
@@ -742,3 +746,112 @@ def jadwalharian_upload_csv(request):
         else:
             messages.error(request, "Format file tidak didukung. Upload file .csv.")
     return redirect("jadwalharian_list")
+
+
+class JadwalMasterView(View):
+    template_name = "sijaku/dashboard/jadwal_master.html"
+
+    def get(self, request, *args, **kwargs):
+        context = {
+            "jadwal_ditemukan": False,
+            "tahun_akademik_aktif": None,
+            "jadwal_per_hari": {},
+            "time_slots": [],
+        }
+
+        try:
+            tahun_akademik_aktif = TahunAkademik.objects.get(aktif=True)
+            context["tahun_akademik_aktif"] = tahun_akademik_aktif
+
+            semua_jadwal = Jadwal.objects.filter(
+                tahun_akademik=tahun_akademik_aktif
+            ).select_related("matakuliah", "dosen", "kelas", "ruangan")
+
+            if semua_jadwal.exists():
+                context["jadwal_ditemukan"] = True
+
+                # --- LOGIKA BARU UNTUK TAMPILAN PER HARI ---
+
+                # 1. Definisikan slot waktu dan hari
+                slots = []
+                current_time = time(7, 30)
+                end_time = time(16, 0)
+                interval = timedelta(minutes=30)
+                base_date = datetime.now().date()
+
+                while current_time <= end_time:
+                    slots.append(current_time)
+                    current_dt = datetime.combine(base_date, current_time)
+                    current_time = (current_dt + interval).time()
+                context["time_slots"] = slots
+
+                hari_list = [
+                    dict(Jadwal.HARI_CHOICES)[i] for i in range(5)
+                ]  # Senin-Jumat
+                all_rooms = list(Ruangan.objects.all().order_by("nama"))
+
+                # 2. Siapkan grid kosong untuk setiap hari
+                jadwal_per_hari = {}
+                for hari in hari_list:
+                    jadwal_per_hari[hari] = {
+                        "rooms": all_rooms,
+                        "timetable": {
+                            slot.strftime("%H:%M"): {
+                                room.id: {"jadwal": None, "spanned": False}
+                                for room in all_rooms
+                            }
+                            for slot in slots
+                        },
+                    }
+
+                # 3. Isi grid dengan data jadwal
+                for jadwal in semua_jadwal.order_by(
+                    "hari", "ruangan__nama", "jam_mulai"
+                ):
+                    hari_str = jadwal.get_hari_display()
+                    if hari_str not in hari_list:
+                        continue
+
+                    # Hitung rowspan
+                    start_dt = datetime.combine(base_date, jadwal.jam_mulai)
+                    end_dt = datetime.combine(base_date, jadwal.jam_selesai)
+                    duration = (end_dt - start_dt).total_seconds() / 60
+                    rowspan = max(1, round(duration / 30))
+
+                    # Cari slot waktu yang pas
+                    placed = False
+                    for slot in slots:
+                        slot_dt = datetime.combine(base_date, slot)
+                        if slot_dt >= start_dt and not placed:
+                            slot_str = slot.strftime("%H:%M")
+
+                            if (
+                                jadwal_per_hari[hari_str]["timetable"][slot_str][
+                                    jadwal.ruangan.id
+                                ]["jadwal"]
+                                is None
+                            ):
+                                timetable_cell = jadwal_per_hari[hari_str]["timetable"][
+                                    slot_str
+                                ][jadwal.ruangan.id]
+                                timetable_cell["jadwal"] = jadwal
+                                timetable_cell["rowspan"] = rowspan
+                                placed = True
+
+                                # Tandai sel-sel di bawahnya sebagai 'spanned'
+                                for i in range(1, rowspan):
+                                    next_slot_dt = slot_dt + (interval * i)
+                                    if next_slot_dt.time() <= end_time:
+                                        next_slot_str = next_slot_dt.time().strftime(
+                                            "%H:%M"
+                                        )
+                                        jadwal_per_hari[hari_str]["timetable"][
+                                            next_slot_str
+                                        ][jadwal.ruangan.id]["spanned"] = True
+
+                context["jadwal_per_hari"] = jadwal_per_hari
+
+        except TahunAkademik.DoesNotExist:
+            pass
+
+        return render(request, self.template_name, context)

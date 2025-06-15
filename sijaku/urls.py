@@ -129,4 +129,6 @@ urlpatterns = [
         views.jadwalharian_upload_csv,
         name="jadwalharian_upload_csv",
     ),
+    # Jadwal
+    path("dashboard/jadwal/", views.JadwalMasterView.as_view(), name="jadwal_master"),
 ]

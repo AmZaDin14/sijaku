@@ -171,6 +171,9 @@ class Kelas(models.Model):
         help_text="Kosongkan jika ini adalah kelas umum (bukan peminatan).",
     )
 
+    def __str__(self):
+        return f"{self.tahun_angkatan} {self.nama}"
+
     class Meta:
         verbose_name = "Kelas"
         verbose_name_plural = "Kelas"
