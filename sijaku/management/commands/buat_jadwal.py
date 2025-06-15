@@ -116,7 +116,8 @@ class GeneticAlgorithm:
             kelas_wajib_ambil = []
             for kelas in all_classes_in_semester:
                 if matakuliah.peminatan is None:
-                    kelas_wajib_ambil.append(kelas)
+                    if kelas.peminatan is None:
+                        kelas_wajib_ambil.append(kelas)
                 elif matakuliah.peminatan == kelas.peminatan:
                     kelas_wajib_ambil.append(kelas)
 
@@ -227,6 +228,8 @@ class GeneticAlgorithm:
             # Cek tipe ruangan (teori di kelas biasa)
             if matakuliah.tipe == "teori" and ruangan.jenis != "kelas":
                 continue
+            if matakuliah.tipe == "praktik" and ruangan.jenis != "lab":
+                continue
 
             for hari in self.possible_slots:
                 for slot_waktu in self.possible_slots[hari].get(durasi_key, []):
@@ -310,18 +313,25 @@ class GeneticAlgorithm:
         return genes
 
     def _calculate_fitness(self, chromosome):
+        # Penalti keras untuk konflik jadwal (tabrakan dosen, ruangan, kelas, atau ruangan tidak sesuai)
         PENALTI_KERAS = 1000.0
+        # Penalti lunak (tidak digunakan dalam kode ini, bisa untuk preferensi ringan)
+        PENALTI_LUNAK = 0.1
         total_penalti = 0.0
+        # Set untuk melacak jadwal dosen, ruangan, dan kelas yang sudah terpakai
         jadwal_dosen, jadwal_ruangan, jadwal_kelas = set(), set(), set()
 
         for gene in chromosome.genes:
+            # Jika dosen tidak ada, penalti keras
             if not gene.dosen:
                 total_penalti += PENALTI_KERAS
                 continue
+            # Ambil blok waktu untuk sesi ini
             time_blocks = get_time_blocks(
                 gene.slot_waktu[0], gene.slot_waktu[1], self.interval
             )
             is_conflict = False
+            # Cek konflik dosen dan ruangan pada setiap blok waktu
             for block in time_blocks:
                 if (gene.dosen.id, gene.hari, block) in jadwal_dosen or (
                     gene.ruangan.id,
@@ -333,6 +343,7 @@ class GeneticAlgorithm:
                     break
             if is_conflict:
                 continue
+            # Cek konflik kelas pada setiap blok waktu
             for kelas in gene.list_kelas:
                 for block in time_blocks:
                     if (kelas.id, gene.hari, block) in jadwal_kelas:
@@ -343,13 +354,21 @@ class GeneticAlgorithm:
                     break
             if is_conflict:
                 continue
+            # Tandai blok waktu yang sudah terpakai oleh dosen, ruangan, dan kelas
             for block in time_blocks:
                 jadwal_dosen.add((gene.dosen.id, gene.hari, block))
                 jadwal_ruangan.add((gene.ruangan.id, gene.hari, block))
                 for kelas in gene.list_kelas:
                     jadwal_kelas.add((kelas.id, gene.hari, block))
+            # Penalti lunak jika jumlah kelas kurang dari kapasitas ruangan
+            if len(gene.list_kelas) < gene.ruangan.kapasitas:
+                total_penalti += PENALTI_LUNAK * (
+                    gene.ruangan.kapasitas - len(gene.list_kelas)
+                )
+            # Penalti jika mata kuliah teori tidak di ruangan kelas
             if gene.matakuliah.tipe == "teori" and gene.ruangan.jenis != "kelas":
                 total_penalti += PENALTI_KERAS
+        # Nilai fitness semakin tinggi jika penalti semakin kecil
         chromosome.fitness = 1.0 / (1.0 + total_penalti)
 
     def _selection(self):

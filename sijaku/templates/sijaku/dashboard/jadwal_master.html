@@ -1,7 +1,15 @@
 {% extends "sijaku/dashboard/base.html" %}
 {% load sijaku_tags%}
 {% block dashboard_content %}
-            <header class="text-center mb-8">
+<style>
+        .table-fixed-layout { table-layout: fixed; }
+        .table td, .table th {
+            height: 100%;
+            vertical-align: top;
+            padding: 0.5rem;
+        }
+    </style>
+        <header class="text-center mb-8">
             <h1 class="text-4xl font-bold text-base-content">Jadwal Kuliah</h1>
             {% if tahun_akademik_aktif %}
                 <h2 class="text-xl text-neutral-500 mt-2">Tahun Akademik: {{ tahun_akademik_aktif }}</h2>
@@ -18,7 +26,8 @@
                         <table class="table table-fixed-layout w-full border-collapse">
                             <thead class="bg-base-300">
                                 <tr>
-                                    <th class="border p-2 w-28">Waktu</th>
+                                    <!-- PERUBAHAN: Menghapus kelas w-28 agar lebar disamakan -->
+                                    <th class="border p-2">Waktu</th>
                                     {% for ruangan in data_hari.rooms %}
                                         <th class="border p-2 text-center">{{ ruangan.nama }}</th>
                                     {% endfor %}
@@ -40,10 +49,12 @@
                                                     <td class="border" rowspan="{{ cell.rowspan|default:1 }}">
                                                         {% if cell.jadwal %}
                                                             <div class="card bg-accent text-accent-content h-full rounded-md p-2 flex flex-col justify-start text-xs shadow-md">
-                                                                <span class="font-bold">{{ cell.jadwal.matakuliah.nama }}</span>
+                                                                <div class="flex flex-col items-start">
+                                                                    <span class="font-bold">{{ cell.jadwal.matakuliah.nama }}</span>
+                                                                </div>
                                                                 <span class="text-xs opacity-80 mt-1">{{ cell.jadwal.dosen.nama|default:"-" }}</span>
                                                                 <div class="mt-auto pt-1">
-                                                                    <!-- PERUBAHAN: Loop untuk menampilkan semua kelas gabungan -->
+                                                                    <span class="badge badge-sm badge-ghost font-semibold mb-1">Smt. {{ cell.jadwal.matakuliah.semester }}</span>
                                                                     <div class="flex flex-wrap gap-1">
                                                                         {% for kelas in cell.jadwal.list_kelas.all %}
                                                                             <span class="font-semibold badge badge-neutral">{{ kelas.nama }}</span>
