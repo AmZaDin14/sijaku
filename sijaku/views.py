@@ -763,14 +763,19 @@ class JadwalMasterView(View):
             tahun_akademik_aktif = TahunAkademik.objects.get(aktif=True)
             context["tahun_akademik_aktif"] = tahun_akademik_aktif
 
-            semua_jadwal = Jadwal.objects.filter(
-                tahun_akademik=tahun_akademik_aktif
-            ).select_related("matakuliah", "dosen", "kelas", "ruangan")
+            # PERUBAHAN: Menggunakan prefetch_related untuk ManyToManyField 'list_kelas'
+            semua_jadwal = (
+                Jadwal.objects.filter(tahun_akademik=tahun_akademik_aktif)
+                .select_related("matakuliah", "dosen", "ruangan")
+                .prefetch_related(
+                    "list_kelas"  # Efisien untuk mengambil data dari ManyToMany
+                )
+            )
 
             if semua_jadwal.exists():
                 context["jadwal_ditemukan"] = True
 
-                # --- LOGIKA BARU UNTUK TAMPILAN PER HARI ---
+                # --- LOGIKA UNTUK TAMPILAN PER HARI ---
 
                 # 1. Definisikan slot waktu dan hari
                 slots = []

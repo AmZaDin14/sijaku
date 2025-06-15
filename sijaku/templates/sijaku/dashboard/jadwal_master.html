@@ -43,7 +43,12 @@
                                                                 <span class="font-bold">{{ cell.jadwal.matakuliah.nama }}</span>
                                                                 <span class="text-xs opacity-80 mt-1">{{ cell.jadwal.dosen.nama|default:"-" }}</span>
                                                                 <div class="mt-auto pt-1">
-                                                                    <span class="font-semibold badge badge-neutral">{{ cell.jadwal.kelas }}</span>
+                                                                    <!-- PERUBAHAN: Loop untuk menampilkan semua kelas gabungan -->
+                                                                    <div class="flex flex-wrap gap-1">
+                                                                        {% for kelas in cell.jadwal.list_kelas.all %}
+                                                                            <span class="font-semibold badge badge-neutral">{{ kelas.nama }}</span>
+                                                                        {% endfor %}
+                                                                    </div>
                                                                 </div>
                                                             </div>
                                                         {% endif %}

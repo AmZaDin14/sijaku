@@ -217,22 +217,26 @@ class Jadwal(models.Model):
     )
     matakuliah = models.ForeignKey(MataKuliah, on_delete=models.CASCADE)
     dosen = models.ForeignKey(Dosen, on_delete=models.SET_NULL, null=True)
-    kelas = models.ForeignKey(Kelas, on_delete=models.CASCADE)
+    list_kelas = models.ManyToManyField(Kelas, related_name="jadwal_set")
     ruangan = models.ForeignKey(Ruangan, on_delete=models.SET_NULL, null=True)
     hari = models.PositiveSmallIntegerField(choices=HARI_CHOICES)
     jam_mulai = models.TimeField()
     jam_selesai = models.TimeField()
 
     def __str__(self):
+        # Mengambil nama kelas untuk ditampilkan di admin panel
+        nama_kelas = ", ".join([k.nama for k in self.list_kelas.all()])
+        if not nama_kelas:
+            nama_kelas = "Tanpa Kelas"
+
         hari_display = self.get_hari_display()  # type: ignore
-        return f"{self.matakuliah.nama} - {self.kelas} ({hari_display}, {self.jam_mulai:%H:%M}-{self.jam_selesai:%H:%M})"
+        return f"{self.matakuliah.nama} - ({nama_kelas}) - {hari_display}, {self.jam_mulai:%H:%M}"
 
     class Meta:
         verbose_name = "Jadwal Kuliah (Hasil)"
         verbose_name_plural = "Jadwal Kuliah (Hasil)"
-        ordering = ["tahun_akademik", "hari", "jam_mulai", "kelas"]
+        ordering = ["tahun_akademik", "hari", "jam_mulai"]
         unique_together = [
             ("tahun_akademik", "hari", "jam_mulai", "ruangan"),
-            ("tahun_akademik", "hari", "jam_mulai", "kelas"),
             ("tahun_akademik", "hari", "jam_mulai", "dosen"),
         ]
