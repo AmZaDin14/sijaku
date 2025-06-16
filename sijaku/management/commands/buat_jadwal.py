@@ -421,12 +421,19 @@ class Command(BaseCommand):
             best_chromosome = ga.get_best_chromosome()
             tahun_akademik_aktif = ga.tahun_akademik_aktif
 
-            if best_chromosome and best_chromosome.fitness == 1.0:
-                self.stdout.write(
-                    self.style.SUCCESS(
-                        "\nSolusi optimal ditemukan! Menyimpan jadwal ke database..."
+            if best_chromosome:
+                if best_chromosome.fitness == 1.0:
+                    self.stdout.write(
+                        self.style.SUCCESS(
+                            "\nSolusi optimal ditemukan! Menyimpan jadwal ke database..."
+                        )
                     )
-                )
+                else:
+                    self.stdout.write(
+                        self.style.WARNING(
+                            f"\nSolusi tidak sempurna ditemukan. Menyimpan jadwal dengan fitness terbaik ({best_chromosome.fitness})."
+                        )
+                    )
                 Jadwal.objects.filter(tahun_akademik=tahun_akademik_aktif).delete()
                 jadwal_baru_list = [
                     Jadwal(

@@ -14,6 +14,14 @@ def is_kaprodi(user):
         return False
 
 
+@register.filter
+def is_wd1(user):
+    try:
+        return hasattr(user, "dosen") and user.dosen.jabatan.filter(nama="wd1").exists()
+    except Exception:
+        return False
+
+
 @register.filter(name="get_item")
 def get_item(dictionary, key):
     """

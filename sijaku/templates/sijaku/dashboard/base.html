@@ -72,6 +72,12 @@
                             </li>
                         {% endif %}
                         {% if request.user.is_authenticated and request.user|is_kaprodi %}
+                            <li class="my-2">
+                                <div class="flex items-center gap-2 text-xs uppercase font-semibold text-gray-400 px-3 py-1">
+                                    <span class="material-icons text-base">horizontal_rule</span>
+                                    Kaprodi
+                                </div>
+                            </li>
                             <li>
                                 <a class="menu-item flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-primary/20 transition{% if request.path == '/dashboard/tahunakademik/' %} bg-primary/10 font-bold text-primary{% endif %}"
                                    href="{% url 'tahunakademik_list' %}">
@@ -82,6 +88,20 @@
                                 <a class="menu-item flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-primary/20 transition{% if request.path == '/dashboard/pemetaan/' %} bg-primary/10 font-bold text-primary{% endif %}"
                                    href="{% url 'pemetaan_list' %}">
                                     <span class="material-icons text-primary">assignment_ind</span> Pemetaan Dosen-MK
+                                </a>
+                            </li>
+                        {% endif %}
+                        {% if request.user.is_authenticated and request.user|is_wd1 %}
+                            <li class="my-2">
+                                <div class="flex items-center gap-2 text-xs uppercase font-semibold text-gray-400 px-3 py-1">
+                                    <span class="material-icons text-base">horizontal_rule</span>
+                                    WD 1
+                                </div>
+                            </li>
+                            <li>
+                                <a class="menu-item flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-primary/20 transition{% if request.path == '/dashboard/jadwal/' %} bg-primary/10 font-bold text-primary{% endif %}"
+                                   href="{% url 'jadwal_master' %}">
+                                    <span class="material-icons text-primary">schedule</span> Jadwal Kuliah
                                 </a>
                             </li>
                         {% endif %}
