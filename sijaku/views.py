@@ -8,6 +8,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
+from django.utils import timezone
 from django.views import View
 from django.views.decorators.http import require_http_methods
 
@@ -23,6 +24,8 @@ from .models import (
     Peminatan,  # pastikan sudah diimpor
     Ruangan,
     TahunAkademik,
+    ValidasiPemetaanDosenMK,
+    ValidasiPemetaanDosenMKLog,
 )
 
 
@@ -314,17 +317,50 @@ def pemetaan_list(request):
     if not is_kaprodi(request.user):
         return redirect("dashboard")
     tahun_aktif = TahunAkademik.objects.filter(aktif=True).first()
-    if not tahun_aktif:
-        return render(
-            request, "sijaku/dashboard/admin/pemetaan.html", {"tahun_aktif": None}
+    validasi = None
+    if tahun_aktif:
+        from .models import ValidasiPemetaanDosenMK
+
+        validasi, _ = ValidasiPemetaanDosenMK.objects.get_or_create(
+            tahun_akademik=tahun_aktif, defaults={"status": "draft"}
         )
-    daftar = PemetaanDosenMK.objects.filter(tahun_akademik=tahun_aktif).select_related(
-        "matakuliah", "dosen_pengampu"
-    )
+    # Perbaikan: izinkan pengajuan jika status draft atau ditolak
+    if (
+        request.method == "POST"
+        and tahun_aktif
+        and validasi
+        and validasi.status in ["draft", "ditolak"]
+    ):
+        from django.utils import timezone
+
+        validasi.status = "diajukan"
+        validasi.diajukan_oleh = (
+            request.user.dosen if hasattr(request.user, "dosen") else None
+        )
+        validasi.diajukan_pada = timezone.now()
+        validasi.save()
+        from .models import ValidasiPemetaanDosenMKLog
+
+        ValidasiPemetaanDosenMKLog.objects.create(
+            validasi=validasi,
+            aksi="diajukan",
+            oleh=validasi.diajukan_oleh,
+            waktu=validasi.diajukan_pada,
+            catatan="Pengajuan validasi oleh Kaprodi.",
+        )
+        from django.contrib import messages
+
+        messages.success(request, "Pengajuan validasi berhasil dikirim ke WD1.")
+        return redirect("pemetaan_list")
+    daftar = []
+    if tahun_aktif:
+        daftar = PemetaanDosenMK.objects.filter(
+            tahun_akademik=tahun_aktif
+        ).select_related("matakuliah", "dosen_pengampu")
     return render(
         request,
         "sijaku/dashboard/admin/pemetaan.html",
-        {"tahun_aktif": tahun_aktif, "pemetaan_list": daftar},
+        {"tahun_aktif": tahun_aktif, "pemetaan_list": daftar, "validasi": validasi},
     )
 
 
@@ -855,3 +891,74 @@ class JadwalMasterView(View):
             pass
 
         return render(request, self.template_name, context)
+
+
+def validasi_pemetaan_list_wd1(request):
+    # Hanya WD1 yang boleh akses
+    if (
+        not hasattr(request.user, "dosen")
+        or not request.user.dosen.jabatan.filter(nama="wd1").exists()
+    ):
+        return redirect("dashboard")
+    daftar = ValidasiPemetaanDosenMK.objects.exclude(status="draft").select_related(
+        "tahun_akademik", "diajukan_oleh"
+    )
+    return render(
+        request,
+        "sijaku/dashboard/wd1/validasi_pemetaan_list.html",
+        {"daftar": daftar},
+    )
+
+
+def validasi_pemetaan_detail_wd1(request, pk):
+    # Hanya WD1 yang boleh akses
+    if (
+        not hasattr(request.user, "dosen")
+        or not request.user.dosen.jabatan.filter(nama="wd1").exists()
+    ):
+        return redirect("dashboard")
+    validasi = get_object_or_404(ValidasiPemetaanDosenMK, pk=pk)
+    # Ambil daftar pemetaan dosen-mk untuk tahun akademik terkait
+    pemetaan_list = PemetaanDosenMK.objects.filter(
+        tahun_akademik=validasi.tahun_akademik
+    ).select_related("matakuliah", "dosen_pengampu")
+    if request.method == "POST":
+        aksi = request.POST.get("aksi")
+        catatan = request.POST.get("catatan", "")
+        from django.utils import timezone
+
+        if aksi == "setujui":
+            validasi.status = "disetujui"
+            validasi.divalidasi_oleh = request.user.dosen
+            validasi.divalidasi_pada = timezone.now()
+            validasi.catatan = catatan
+            validasi.save()
+            ValidasiPemetaanDosenMKLog.objects.create(
+                validasi=validasi,
+                aksi="disetujui",
+                oleh=request.user.dosen,
+                waktu=validasi.divalidasi_pada,
+                catatan=catatan,
+            )
+            messages.success(request, "Pemetaan dosen-mk disetujui.")
+        elif aksi == "tolak":
+            validasi.status = "ditolak"
+            validasi.divalidasi_oleh = request.user.dosen
+            validasi.divalidasi_pada = timezone.now()
+            validasi.catatan = catatan
+            validasi.save()
+            ValidasiPemetaanDosenMKLog.objects.create(
+                validasi=validasi,
+                aksi="ditolak",
+                oleh=request.user.dosen,
+                waktu=validasi.divalidasi_pada,
+                catatan=catatan,
+            )
+            messages.error(request, "Pemetaan dosen-mk ditolak.")
+        return redirect("validasi_pemetaan_list_wd1")
+    histori = validasi.histori.all()
+    return render(
+        request,
+        "sijaku/dashboard/wd1/validasi_pemetaan_detail.html",
+        {"validasi": validasi, "histori": histori, "pemetaan_list": pemetaan_list},
+    )

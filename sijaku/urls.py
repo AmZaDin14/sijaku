@@ -1,6 +1,7 @@
 from django.urls import path
 
 from . import views
+from .views import validasi_pemetaan_detail_wd1, validasi_pemetaan_list_wd1
 
 urlpatterns = [
     path("", views.index, name="home"),
@@ -131,4 +132,15 @@ urlpatterns = [
     ),
     # Jadwal
     path("dashboard/jadwal/", views.JadwalMasterView.as_view(), name="jadwal_master"),
+    # Validasi Pemetaan Dosen-MK untuk WD1
+    path(
+        "dashboard/validasi-pemetaan/",
+        validasi_pemetaan_list_wd1,
+        name="validasi_pemetaan_list_wd1",
+    ),
+    path(
+        "dashboard/validasi-pemetaan/<int:pk>/",
+        validasi_pemetaan_detail_wd1,
+        name="validasi_pemetaan_detail_wd1",
+    ),
 ]

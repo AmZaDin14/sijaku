@@ -99,6 +99,12 @@
                                 </div>
                             </li>
                             <li>
+                                <a class="menu-item flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-primary/20 transition{% if request.path == '/dashboard/validasi-pemetaan/' %} bg-primary/10 font-bold text-primary{% endif %}"
+                                   href="{% url 'validasi_pemetaan_list_wd1' %}">
+                                    <span class="material-icons text-primary">fact_check</span> Validasi Pemetaan Dosen-MK
+                                </a>
+                            </li>
+                            <li>
                                 <a class="menu-item flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-primary/20 transition{% if request.path == '/dashboard/jadwal/' %} bg-primary/10 font-bold text-primary{% endif %}"
                                    href="{% url 'jadwal_master' %}">
                                     <span class="material-icons text-primary">schedule</span> Jadwal Kuliah

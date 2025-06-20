@@ -6,9 +6,9 @@ from .models import MataKuliah
 DURASI_PER_SKS = 30  # Ganti sesuai aturan kampus Anda, misal: 50
 
 
-def get_durasi_menit(matakuliah: MataKuliah):
+def get_durasi_menit(matakuliah: MataKuliah, durasi_per_sks: int = DURASI_PER_SKS):
     """Mengubah SKS menjadi durasi dalam menit."""
-    return matakuliah.sks * DURASI_PER_SKS
+    return matakuliah.sks * durasi_per_sks
 
 
 def find_divisors(n: int):

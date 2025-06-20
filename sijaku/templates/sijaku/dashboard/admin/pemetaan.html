@@ -13,6 +13,33 @@
     <div class="mb-4">
       <span class="font-semibold">Tahun Akademik:</span> {{ tahun_aktif.tahun }} ({{ tahun_aktif.get_semester_display }})
     </div>
+    {% if validasi %}
+      <div class="mb-4">
+        <span class="font-semibold">Status Validasi:</span>
+        {% if validasi.status == 'draft' %}
+          <span class="badge badge-warning align-middle">{{ validasi.get_status_display }}</span>
+        {% elif validasi.status == 'diajukan' %}
+          <span class="badge badge-info align-middle">{{ validasi.get_status_display }}</span>
+        {% elif validasi.status == 'disetujui' %}
+          <span class="badge badge-success align-middle">{{ validasi.get_status_display }}</span>
+        {% elif validasi.status == 'ditolak' %}
+          <span class="badge badge-error align-middle">{{ validasi.get_status_display }}</span>
+        {% else %}
+          <span class="badge align-middle">{{ validasi.get_status_display }}</span>
+        {% endif %}
+        {% if validasi.status == 'draft' or validasi.status == 'ditolak' %}
+          <form method="post" class="inline">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-primary btn-sm ml-2">Ajukan Validasi ke WD1</button>
+          </form>
+        {% endif %}
+        {% if validasi.status == 'ditolak' and validasi.catatan %}
+          <div class="mt-2 text-sm text-error">
+            <span class="font-semibold">Catatan WD1:</span> {{ validasi.catatan }}
+          </div>
+        {% endif %}
+      </div>
+    {% endif %}
     <div class="overflow-x-auto rounded-xl shadow-lg bg-base-100">
       <table class="table table-zebra w-full">
         <thead class="bg-base-200 text-base-content">

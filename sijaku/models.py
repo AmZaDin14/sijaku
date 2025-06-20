@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils import timezone
 
 
 class Dosen(models.Model):
@@ -152,6 +153,63 @@ class PemetaanDosenMK(models.Model):
 
     def __str__(self):
         return f"{self.matakuliah} ({self.tahun_akademik})"
+
+
+class ValidasiPemetaanDosenMK(models.Model):
+    STATUS_CHOICES = [
+        ("draft", "Draft"),
+        ("diajukan", "Diajukan ke WD1"),
+        ("disetujui", "Disetujui WD1"),
+        ("ditolak", "Ditolak WD1"),
+    ]
+    tahun_akademik = models.OneToOneField(
+        TahunAkademik, on_delete=models.CASCADE, related_name="validasi_pemetaan"
+    )
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="draft")
+    diajukan_oleh = models.ForeignKey(
+        Dosen,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="pengajuan_pemetaan",
+    )
+    diajukan_pada = models.DateTimeField(null=True, blank=True)
+    divalidasi_oleh = models.ForeignKey(
+        Dosen,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="validasi_pemetaan_wd1",
+    )
+    divalidasi_pada = models.DateTimeField(null=True, blank=True)
+    catatan = models.TextField(blank=True)
+
+    class Meta:
+        verbose_name = "Validasi Pemetaan Dosen-MK"
+        verbose_name_plural = "Validasi Pemetaan Dosen-MK"
+
+    def __str__(self):
+        return f"{self.tahun_akademik} - {self.get_status_display()}"
+
+
+class ValidasiPemetaanDosenMKLog(models.Model):
+    validasi = models.ForeignKey(
+        ValidasiPemetaanDosenMK, on_delete=models.CASCADE, related_name="histori"
+    )
+    aksi = models.CharField(
+        max_length=50, choices=ValidasiPemetaanDosenMK.STATUS_CHOICES
+    )
+    oleh = models.ForeignKey(Dosen, on_delete=models.SET_NULL, null=True, blank=True)
+    waktu = models.DateTimeField(default=timezone.now)
+    catatan = models.TextField(blank=True)
+
+    class Meta:
+        verbose_name = "Histori Validasi Pemetaan Dosen-MK"
+        verbose_name_plural = "Histori Validasi Pemetaan Dosen-MK"
+        ordering = ["-waktu"]
+
+    def __str__(self):
+        return f"{self.validasi} - {self.aksi} ({self.waktu:%Y-%m-%d %H:%M})"
 
 
 class Kelas(models.Model):
