@@ -1,4 +1,4 @@
-from django.urls import path
+from django.urls import include, path
 
 from . import views
 from .views import validasi_pemetaan_detail_wd1, validasi_pemetaan_list_wd1
@@ -143,4 +143,5 @@ urlpatterns = [
         validasi_pemetaan_detail_wd1,
         name="validasi_pemetaan_detail_wd1",
     ),
+    path("dashboard/wd1/genetika/", include("penjadwalan.urls")),
 ]

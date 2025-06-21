@@ -110,6 +110,12 @@
                                     <span class="material-icons text-primary">schedule</span> Jadwal Kuliah
                                 </a>
                             </li>
+                            <li>
+                                <a class="menu-item flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-primary/20 transition{% if request.path == '/dashboard/wd1/genetika/' %} bg-primary/10 font-bold text-primary{% endif %}"
+                                   href="{% url 'genetika_wd1' %}">
+                                    <span class="material-icons text-primary">science</span> Algoritma Genetika
+                                </a>
+                            </li>
                         {% endif %}
                         <!-- Tambahkan menu lain di sini -->
                     </ul>

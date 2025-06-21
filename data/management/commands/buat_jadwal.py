@@ -102,9 +102,12 @@ class GeneticAlgorithm:
                     (selisih_tahun * 2) + 1 if is_ganjil else (selisih_tahun * 2) + 2
                 )
                 if matakuliah.semester == semester_berjalan:
-                    if matakuliah.peminatan is None:
+                    if matakuliah.peminatan is None and kelas.peminatan is None:
                         self.genes_to_schedule.append((pemetaan, kelas))
-                    elif matakuliah.peminatan == kelas.peminatan:
+                    elif (
+                        matakuliah.peminatan is not None
+                        and matakuliah.peminatan == kelas.peminatan
+                    ):
                         self.genes_to_schedule.append((pemetaan, kelas))
 
         if not self.genes_to_schedule:
