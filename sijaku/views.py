@@ -12,12 +12,12 @@ from django.utils import timezone
 from django.views import View
 from django.views.decorators.http import require_http_methods
 
+from penjadwalan.models import Jadwal, JadwalHarian
+
 from .forms import DosenForm, JadwalHarianForm
 from .models import (
     Dosen,
     Jabatan,
-    Jadwal,
-    JadwalHarian,
     Kelas,
     MataKuliah,
     PemetaanDosenMK,
@@ -844,7 +844,7 @@ class JadwalMasterView(View):
                 for jadwal in semua_jadwal.order_by(
                     "hari", "ruangan__nama", "jam_mulai"
                 ):
-                    hari_str = jadwal.get_hari_display()
+                    hari_str = dict(Jadwal.HARI_CHOICES).get(jadwal.hari, jadwal.hari)
                     if hari_str not in hari_list:
                         continue
 
@@ -861,15 +861,16 @@ class JadwalMasterView(View):
                         if slot_dt >= start_dt and not placed:
                             slot_str = slot.strftime("%H:%M")
 
-                            if (
+                            ruangan_id = jadwal.ruangan.id if jadwal.ruangan else None
+                            if ruangan_id and (
                                 jadwal_per_hari[hari_str]["timetable"][slot_str][
-                                    jadwal.ruangan.id
+                                    ruangan_id
                                 ]["jadwal"]
                                 is None
                             ):
                                 timetable_cell = jadwal_per_hari[hari_str]["timetable"][
                                     slot_str
-                                ][jadwal.ruangan.id]
+                                ][ruangan_id]
                                 timetable_cell["jadwal"] = jadwal
                                 timetable_cell["rowspan"] = rowspan
                                 placed = True
@@ -883,7 +884,7 @@ class JadwalMasterView(View):
                                         )
                                         jadwal_per_hari[hari_str]["timetable"][
                                             next_slot_str
-                                        ][jadwal.ruangan.id]["spanned"] = True
+                                        ][ruangan_id]["spanned"] = True
 
                 context["jadwal_per_hari"] = jadwal_per_hari
 

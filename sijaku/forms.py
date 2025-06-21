@@ -1,9 +1,10 @@
 from django import forms
 
+from penjadwalan.models import JadwalHarian
+
 from .models import (
     Dosen,
     Jabatan,
-    JadwalHarian,
     Kelas,
     MataKuliah,
     PemetaanDosenMK,
