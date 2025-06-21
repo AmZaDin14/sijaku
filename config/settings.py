@@ -23,7 +23,7 @@ INSTALLED_APPS = [
     "tailwind",
     "theme",
     "django_browser_reload",
-    "sijaku",
+    "data",
     "accounts",
     "penjadwalan",
 ]

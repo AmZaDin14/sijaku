@@ -12,21 +12,22 @@ from django.utils import timezone
 from django.views import View
 from django.views.decorators.http import require_http_methods
 
-from penjadwalan.models import Jadwal, JadwalHarian
-
-from .forms import DosenForm, JadwalHarianForm
-from .models import (
+from data.models import (
     Dosen,
     Jabatan,
     Kelas,
     MataKuliah,
     PemetaanDosenMK,
-    Peminatan,  # pastikan sudah diimpor
+    Peminatan,
     Ruangan,
     TahunAkademik,
     ValidasiPemetaanDosenMK,
     ValidasiPemetaanDosenMKLog,
 )
+from penjadwalan.models import Jadwal, JadwalHarian
+
+from .forms import DosenForm, JadwalHarianForm
+from .models import *
 
 
 def index(request):

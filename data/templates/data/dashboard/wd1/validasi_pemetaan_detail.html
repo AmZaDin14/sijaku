@@ -1,0 +1,96 @@
+{% extends "data/dashboard/base.html" %}
+{% block dashboard_content %}
+<div class="max-w-2xl mx-auto p-4">
+  <h1 class="text-2xl font-bold mb-4">Detail Validasi Pemetaan Dosen-MK</h1>
+  <div class="mb-2">
+    <span class="font-semibold">Tahun Akademik:</span> {{ validasi.tahun_akademik }}
+  </div>
+  <div class="mb-2">
+    <span class="font-semibold">Status:</span>
+    {% if validasi.status == 'draft' %}
+      <span class="badge badge-warning">{{ validasi.get_status_display }}</span>
+    {% elif validasi.status == 'diajukan' %}
+      <span class="badge badge-info">{{ validasi.get_status_display }}</span>
+    {% elif validasi.status == 'disetujui' %}
+      <span class="badge badge-success">{{ validasi.get_status_display }}</span>
+    {% elif validasi.status == 'ditolak' %}
+      <span class="badge badge-error">{{ validasi.get_status_display }}</span>
+    {% else %}
+      <span class="badge">{{ validasi.get_status_display }}</span>
+    {% endif %}
+  </div>
+  <div class="mb-2">
+    <span class="font-semibold">Diajukan Oleh:</span> {{ validasi.diajukan_oleh|default:'-' }}
+  </div>
+  <div class="mb-2">
+    <span class="font-semibold">Diajukan Pada:</span> {{ validasi.diajukan_pada|date:'d M Y H:i' }}
+  </div>
+  <div class="mb-2">
+    <span class="font-semibold">Catatan Kaprodi:</span> {{ validasi.catatan|default:'-' }}
+  </div>
+  <hr class="my-4">
+  <h2 class="text-lg font-semibold mb-2">Daftar Pemetaan Dosen-MK</h2>
+  <div class="overflow-x-auto rounded-xl shadow-lg bg-base-100 mb-6">
+    <table class="table table-zebra w-full">
+      <thead class="bg-base-200 text-base-content">
+        <tr>
+          <th class="px-4 py-3 text-left">Mata Kuliah</th>
+          <th class="px-4 py-3 text-left">Semester</th>
+          <th class="px-4 py-3 text-left">SKS</th>
+          <th class="px-4 py-3 text-left">Dosen Pengampu</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in pemetaan_list %}
+        <tr class="hover">
+          <td class="px-4 py-2">{{ p.matakuliah }}</td>
+          <td class="px-4 py-2">{{ p.matakuliah.semester }}</td>
+          <td class="px-4 py-2">{{ p.matakuliah.sks }}</td>
+          <td class="px-4 py-2">{{ p.dosen_pengampu|default:'-' }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="4" class="text-center py-6 text-base-content/60">Belum ada data pemetaan.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <h2 class="text-lg font-semibold mb-2">Histori Validasi</h2>
+  <ul class="mb-4">
+    {% for h in histori %}
+      <li class="mb-1">
+        [{{ h.waktu|date:'d M Y H:i' }}]
+        {% if h.aksi == 'draft' %}
+          <span class="badge badge-warning">{{ h.get_aksi_display }}</span>
+        {% elif h.aksi == 'diajukan' %}
+          <span class="badge badge-info">{{ h.get_aksi_display }}</span>
+        {% elif h.aksi == 'disetujui' %}
+          <span class="badge badge-success">{{ h.get_aksi_display }}</span>
+        {% elif h.aksi == 'ditolak' %}
+          <span class="badge badge-error">{{ h.get_aksi_display }}</span>
+        {% else %}
+          <span class="badge">{{ h.get_aksi_display }}</span>
+        {% endif %}
+        oleh {{ h.oleh|default:'-' }}{% if h.catatan %} - <i>{{ h.catatan }}</i>{% endif %}
+      </li>
+    {% empty %}
+      <li>Belum ada histori.</li>
+    {% endfor %}
+  </ul>
+  {% if validasi.status == 'diajukan' or validasi.status == 'disetujui' %}
+  <form method="post" class="space-y-2">
+    {% csrf_token %}
+    <div>
+      <label class="label">Catatan (opsional):</label>
+      <textarea name="catatan" class="textarea textarea-bordered w-full"></textarea>
+    </div>
+    <div class="flex gap-2">
+      <button name="aksi" value="setujui" class="btn btn-success">Setujui</button>
+      <button name="aksi" value="tolak" class="btn btn-error">Tolak</button>
+      <a href="{% url 'validasi_pemetaan_list_wd1' %}" class="btn btn-secondary">Kembali</a>
+    </div>
+  </form>
+  {% else %}
+    <a href="{% url 'validasi_pemetaan_list_wd1' %}" class="btn btn-secondary">Kembali</a>
+  {% endif %}
+</div>
+{% endblock %}

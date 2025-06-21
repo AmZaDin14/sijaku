@@ -1,6 +1,6 @@
 from django.db import models
 
-from sijaku.models import Dosen, Kelas, MataKuliah, Ruangan, TahunAkademik
+from data.models import Dosen, Kelas, MataKuliah, Ruangan, TahunAkademik
 
 # Create your models here.
 

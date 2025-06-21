@@ -1,6 +1,8 @@
 from django import forms
+
+from data.models import Dosen
+
 from .models import User
-from sijaku.models import Dosen
 
 
 class UserRegistrationForm(forms.ModelForm):
@@ -32,7 +34,7 @@ class UserRegistrationForm(forms.ModelForm):
         if commit:
             user.save()
             # Assign user ke Dosen dengan nidn yang sama
-            from sijaku.models import Dosen
+            from data.models import Dosen
 
             try:
                 dosen = Dosen.objects.get(nidn=user.username)
