@@ -29,7 +29,7 @@
             <aside class="menu p-4 w-64 min-h-full bg-gradient-to-b from-base-300 to-base-100 text-base-content border-r flex flex-col justify-between shadow-lg">
                 <div>
                     <div class="flex items-center gap-2 mb-4">
-                        <img src="{% static 'logo.png' %}" alt="Logo" class="w-8 h-8 rounded"/>
+                        <img src="{% static 'logo.png' %}" alt="Logo" class="w-8 h-8 rounded" />
                         <h2 class="text-lg font-extrabold tracking-tight">SIJAKU</h2>
                     </div>
                     <ul class="space-y-1">
@@ -41,7 +41,7 @@
                         </li>
                         <li>
                             <a class="menu-item flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-primary/20 transition{% if request.path == '/dashboard/jadwal/' %} bg-primary/10 font-bold text-primary{% endif %}"
-                                href="{% url 'jadwal_master' %}">
+                               href="{% url 'jadwal_master' %}">
                                 <span class="material-icons text-primary">schedule</span> Jadwal Kuliah
                             </a>
                         </li>
@@ -121,7 +121,8 @@
                     </ul>
                 </div>
                 <div class="mt-8">
-                    <a class="menu-item btn btn-error w-full flex items-center gap-2" href="{% url 'logout' %}">
+                    <a class="menu-item btn btn-error w-full flex items-center gap-2"
+                       href="{% url 'logout' %}">
                         <span class="material-icons">logout</span> Logout
                     </a>
                 </div>

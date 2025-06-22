@@ -11,11 +11,20 @@
                    class="btn btn-info btn-sm shadow-md">Atur Peminatan</a>
             </div>
         </div>
-        <form method="post" enctype="multipart/form-data" action="{% url 'matakuliah_upload_excel' %}" class="mb-4 flex gap-2 items-center flex-wrap">
+        <form method="post"
+              enctype="multipart/form-data"
+              action="{% url 'matakuliah_upload_excel' %}"
+              class="mb-4 flex gap-2 items-center flex-wrap">
             {% csrf_token %}
-            <input type="file" name="excel_file" accept=".csv,.xlsx,.xls" class="file-input file-input-bordered file-input-sm" required>
+            <input type="file"
+                   name="excel_file"
+                   accept=".csv,.xlsx,.xls"
+                   class="file-input file-input-bordered file-input-sm"
+                   required>
             <button type="submit" class="btn btn-accent btn-sm">Upload Data</button>
-            <a href="{% static 'data/template_matakuliah.csv' %}" download class="btn btn-outline btn-success btn-sm">Download Template</a>
+            <a href="{% static 'data/template_matakuliah.csv' %}"
+               download
+               class="btn btn-outline btn-success btn-sm">Download Template</a>
         </form>
         <div class="overflow-x-auto rounded-xl shadow-lg bg-base-100">
             <table class="table table-zebra w-full">

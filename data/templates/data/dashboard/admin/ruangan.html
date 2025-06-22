@@ -7,11 +7,20 @@
             <a href="{% url 'ruangan_create' %}"
                class="btn btn-primary btn-sm shadow-md">Tambah Ruangan</a>
         </div>
-        <form method="post" enctype="multipart/form-data" action="{% url 'ruangan_upload_csv' %}" class="mb-4 flex gap-2 items-center flex-wrap">
+        <form method="post"
+              enctype="multipart/form-data"
+              action="{% url 'ruangan_upload_csv' %}"
+              class="mb-4 flex gap-2 items-center flex-wrap">
             {% csrf_token %}
-            <input type="file" name="csv_file" accept=".csv" class="file-input file-input-bordered file-input-sm" required>
+            <input type="file"
+                   name="csv_file"
+                   accept=".csv"
+                   class="file-input file-input-bordered file-input-sm"
+                   required>
             <button type="submit" class="btn btn-accent btn-sm">Upload Data</button>
-            <a href="{% static 'sijaku/template_ruangan.csv' %}" download class="btn btn-outline btn-success btn-sm">Download Template</a>
+            <a href="{% static 'sijaku/template_ruangan.csv' %}"
+               download
+               class="btn btn-outline btn-success btn-sm">Download Template</a>
         </form>
         <div class="overflow-x-auto rounded-xl shadow-lg bg-base-100">
             <table class="table table-zebra w-full">

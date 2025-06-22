@@ -1,76 +1,86 @@
 {% extends "data/dashboard/base.html" %}
 {% block dashboard_content %}
-<div class="max-w-4xl mx-auto p-4">
-  <div class="flex items-center justify-between mb-6">
-    <h1 class="text-3xl font-extrabold tracking-tight">Pemetaan Dosen-MK</h1>
-    {% if tahun_aktif %}
-      <a href="{% url 'pemetaan_tambah_mk' %}" class="btn btn-warning btn-sm shadow-md">Edit Mata Kuliah</a>
-    {% endif %}
-  </div>
-  {% if not tahun_aktif %}
-    <div class="alert alert-warning">Tidak ada tahun akademik aktif.</div>
-  {% else %}
-    <div class="mb-4">
-      <span class="font-semibold">Tahun Akademik:</span> {{ tahun_aktif.tahun }} ({{ tahun_aktif.get_semester_display }})
-    </div>
-    {% if validasi %}
-      <div class="mb-4">
-        <span class="font-semibold">Status Validasi:</span>
-        {% if validasi.status == 'draft' %}
-          <span class="badge badge-warning align-middle">{{ validasi.get_status_display }}</span>
-        {% elif validasi.status == 'diajukan' %}
-          <span class="badge badge-info align-middle">{{ validasi.get_status_display }}</span>
-        {% elif validasi.status == 'disetujui' %}
-          <span class="badge badge-success align-middle">{{ validasi.get_status_display }}</span>
-        {% elif validasi.status == 'ditolak' %}
-          <span class="badge badge-error align-middle">{{ validasi.get_status_display }}</span>
+    <div class="max-w-4xl mx-auto p-4">
+        <div class="flex items-center justify-between mb-6">
+            <h1 class="text-3xl font-extrabold tracking-tight">Pemetaan Dosen-MK</h1>
+            {% if tahun_aktif %}
+                <a href="{% url 'pemetaan_tambah_mk' %}"
+                   class="btn btn-warning btn-sm shadow-md">Edit Mata Kuliah</a>
+            {% endif %}
+        </div>
+        {% if not tahun_aktif %}
+            <div class="alert alert-warning">Tidak ada tahun akademik aktif.</div>
         {% else %}
-          <span class="badge align-middle">{{ validasi.get_status_display }}</span>
+            <div class="mb-4">
+                <span class="font-semibold">Tahun Akademik:</span> {{ tahun_aktif.tahun }} ({{ tahun_aktif.get_semester_display }})
+            </div>
+            {% if validasi %}
+                <div class="mb-4">
+                    <span class="font-semibold">Status Validasi:</span>
+                    {% if validasi.status == 'draft' %}
+                        <span class="badge badge-warning align-middle">{{ validasi.get_status_display }}</span>
+                    {% elif validasi.status == 'diajukan' %}
+                        <span class="badge badge-info align-middle">{{ validasi.get_status_display }}</span>
+                    {% elif validasi.status == 'disetujui' %}
+                        <span class="badge badge-success align-middle">{{ validasi.get_status_display }}</span>
+                    {% elif validasi.status == 'ditolak' %}
+                        <span class="badge badge-error align-middle">{{ validasi.get_status_display }}</span>
+                    {% else %}
+                        <span class="badge align-middle">{{ validasi.get_status_display }}</span>
+                    {% endif %}
+                    {% if validasi.status == 'draft' or validasi.status == 'ditolak' %}
+                        <form method="post" class="inline">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-primary btn-sm ml-2">Ajukan Validasi ke WD1</button>
+                        </form>
+                    {% endif %}
+                    {% if validasi.status == 'ditolak' and validasi.catatan %}
+                        <div class="mt-2 text-sm text-error">
+                            <span class="font-semibold">Catatan WD1:</span> {{ validasi.catatan }}
+                        </div>
+                    {% endif %}
+                </div>
+            {% endif %}
+            <div class="overflow-x-auto rounded-xl shadow-lg bg-base-100">
+                <table class="table table-zebra w-full">
+                    <thead class="bg-base-200 text-base-content">
+                        <tr>
+                            <th class="px-4 py-3 text-left">Mata Kuliah</th>
+                            <th class="px-4 py-3 text-left">Semester</th>
+                            <th class="px-4 py-3 text-left">SKS</th>
+                            <th class="px-4 py-3 text-left">Dosen Pengampu</th>
+                            <th class="px-4 py-3 text-center">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for p in pemetaan_list %}
+                            <tr class="hover">
+                                <td class="px-4 py-2">{{ p.matakuliah }}</td>
+                                <td class="px-4 py-2">{{ p.matakuliah.semester }}</td>
+                                <td class="px-4 py-2">{{ p.matakuliah.sks }}</td>
+                                <td class="px-4 py-2">{{ p.dosen_pengampu|default:'-' }}</td>
+                                <td class="px-4 py-2 text-center">
+                                    <a href="{% url 'pemetaan_edit_dosen' p.pk %}"
+                                       class="btn btn-xs btn-outline btn-info flex items-center gap-1 whitespace-nowrap">
+                                        <svg xmlns="http://www.w3.org/2000/svg"
+                                             class="h-3 w-3"
+                                             fill="none"
+                                             viewBox="0 0 24 24"
+                                             stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536M9 13l6.586-6.586a2 2 0 112.828 2.828L11.828 15.828a2 2 0 01-2.828 0L9 13zm-6 6h6a2 2 0 002-2v-6a2 2 0 00-2-2H3a2 2 0 00-2 2v6a2 2 0 002 2z" />
+                                        </svg>
+                                        <span>Edit Dosen</span>
+                                    </a>
+                                </td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="5" class="text-center py-6 text-base-content/60">Belum ada data pemetaan.</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         {% endif %}
-        {% if validasi.status == 'draft' or validasi.status == 'ditolak' %}
-          <form method="post" class="inline">
-            {% csrf_token %}
-            <button type="submit" class="btn btn-primary btn-sm ml-2">Ajukan Validasi ke WD1</button>
-          </form>
-        {% endif %}
-        {% if validasi.status == 'ditolak' and validasi.catatan %}
-          <div class="mt-2 text-sm text-error">
-            <span class="font-semibold">Catatan WD1:</span> {{ validasi.catatan }}
-          </div>
-        {% endif %}
-      </div>
-    {% endif %}
-    <div class="overflow-x-auto rounded-xl shadow-lg bg-base-100">
-      <table class="table table-zebra w-full">
-        <thead class="bg-base-200 text-base-content">
-          <tr>
-            <th class="px-4 py-3 text-left">Mata Kuliah</th>
-            <th class="px-4 py-3 text-left">Semester</th>
-            <th class="px-4 py-3 text-left">SKS</th>
-            <th class="px-4 py-3 text-left">Dosen Pengampu</th>
-            <th class="px-4 py-3 text-center">Aksi</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for p in pemetaan_list %}
-          <tr class="hover">
-            <td class="px-4 py-2">{{ p.matakuliah }}</td>
-            <td class="px-4 py-2">{{ p.matakuliah.semester }}</td>
-            <td class="px-4 py-2">{{ p.matakuliah.sks }}</td>
-            <td class="px-4 py-2">{{ p.dosen_pengampu|default:'-' }}</td>
-            <td class="px-4 py-2 text-center">
-              <a href="{% url 'pemetaan_edit_dosen' p.pk %}" class="btn btn-xs btn-outline btn-info flex items-center gap-1 whitespace-nowrap">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536M9 13l6.586-6.586a2 2 0 112.828 2.828L11.828 15.828a2 2 0 01-2.828 0L9 13zm-6 6h6a2 2 0 002-2v-6a2 2 0 00-2-2H3a2 2 0 00-2 2v6a2 2 0 002 2z" /></svg>
-                <span>Edit Dosen</span>
-              </a>
-            </td>
-          </tr>
-          {% empty %}
-          <tr><td colspan="5" class="text-center py-6 text-base-content/60">Belum ada data pemetaan.</td></tr>
-          {% endfor %}
-        </tbody>
-      </table>
     </div>
-  {% endif %}
-</div>
 {% endblock %}

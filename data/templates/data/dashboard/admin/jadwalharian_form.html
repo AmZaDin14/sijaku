@@ -23,17 +23,23 @@
             <div class="form-control w-full">
                 {{ form.jam_selesai.label_tag }}
                 {{ form.jam_selesai }}
-                {% if form.jam_selesai.errors %}<span class="text-error text-xs">{{ form.jam_selesai.errors|striptags }}</span>{% endif %}
+                {% if form.jam_selesai.errors %}
+                    <span class="text-error text-xs">{{ form.jam_selesai.errors|striptags }}</span>
+                {% endif %}
             </div>
             <div class="form-control w-full">
                 {{ form.istirahat_mulai.label_tag }}
                 {{ form.istirahat_mulai }}
-                {% if form.istirahat_mulai.errors %}<span class="text-error text-xs">{{ form.istirahat_mulai.errors|striptags }}</span>{% endif %}
+                {% if form.istirahat_mulai.errors %}
+                    <span class="text-error text-xs">{{ form.istirahat_mulai.errors|striptags }}</span>
+                {% endif %}
             </div>
             <div class="form-control w-full">
                 {{ form.istirahat_selesai.label_tag }}
                 {{ form.istirahat_selesai }}
-                {% if form.istirahat_selesai.errors %}<span class="text-error text-xs">{{ form.istirahat_selesai.errors|striptags }}</span>{% endif %}
+                {% if form.istirahat_selesai.errors %}
+                    <span class="text-error text-xs">{{ form.istirahat_selesai.errors|striptags }}</span>
+                {% endif %}
             </div>
             <div class="flex gap-2">
                 <button type="submit" class="btn btn-primary">Simpan</button>
