@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% load static %}
+{% block content %}
+<nav class="navbar bg-base-100 border-b shadow-sm">
+    <div class="container mx-auto flex flex-wrap items-center justify-between py-3 px-4">
+        <div class="flex items-center gap-2">
+            <img src="{% static 'logo.png' %}" alt="Logo" class="h-8 w-8 mr-2">
+            <span class="font-bold text-xl text-primary">Sijaku</span>
+        </div>
+        <!-- Hamburger menu for mobile -->
+        <div class="lg:hidden">
+            <label tabindex="0" class="btn btn-ghost btn-circle">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" /></svg>
+            </label>
+            <ul tabindex="0" class="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-52 right-0 absolute hidden" id="guest-nav-dropdown">
+                <li><a href="/">Home</a></li>
+                <li><a href="/jadwal/">Jadwal</a></li>
+                {% if user.is_authenticated %}
+                    <li><a href="{% url 'dashboard' %}">Dashboard</a></li>
+                    <li class="menu-title"><span>{{ user.username }}</span></li>
+                    <li><a href="{% url 'logout' %}" class="text-error">Logout</a></li>
+                {% else %}
+                    <li><a href="{% url 'login' %}" class="text-primary">Login</a></li>
+                {% endif %}
+            </ul>
+        </div>
+        <!-- Desktop menu -->
+        <div class="hidden lg:flex gap-4 items-center">
+            <a href="/" class="btn btn-ghost normal-case text-base">Home</a>
+            <a href="/jadwal/" class="btn btn-ghost normal-case text-base">Jadwal</a>
+            {% if user.is_authenticated %}
+                <a href="{% url 'dashboard' %}" class="btn btn-ghost normal-case text-base">Dashboard</a>
+                <span class="text-gray-400">|</span>
+                <span class="text-base text-base-content">{{ user.username }}</span>
+                <a href="{% url 'logout' %}" class="btn btn-error btn-sm ml-2">Logout</a>
+            {% else %}
+                <a href="{% url 'login' %}" class="btn btn-primary btn-sm">Login</a>
+            {% endif %}
+        </div>
+    </div>
+    <script>
+        // Toggle dropdown menu for mobile
+        document.addEventListener('DOMContentLoaded', function() {
+            const label = document.querySelector('.navbar .btn-circle');
+            const dropdown = document.getElementById('guest-nav-dropdown');
+            if(label && dropdown) {
+                label.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    dropdown.classList.toggle('hidden');
+                });
+                document.body.addEventListener('click', function() {
+                    dropdown.classList.add('hidden');
+                });
+                dropdown.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                });
+            }
+        });
+    </script>
+</nav>
+{% block guest_content %}
+{% endblock guest_content %}
+{% endblock content %}

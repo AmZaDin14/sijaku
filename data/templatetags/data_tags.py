@@ -31,3 +31,11 @@ def get_item(dictionary, key):
     if hasattr(dictionary, "get"):
         return dictionary.get(key)
     return None
+
+
+@register.filter
+def mul(value, arg):
+    try:
+        return int(value) * int(arg)
+    except (ValueError, TypeError):
+        return ""

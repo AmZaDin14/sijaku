@@ -39,12 +39,14 @@
                                 <span class="material-icons text-primary">dashboard</span> Dashboard
                             </a>
                         </li>
-                        <li>
-                            <a class="menu-item flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-primary/20 transition{% if request.path == '/dashboard/jadwal/' %} bg-primary/10 font-bold text-primary{% endif %}"
-                               href="{% url 'jadwal_master' %}">
-                                <span class="material-icons text-primary">schedule</span> Jadwal Kuliah
-                            </a>
-                        </li>
+                        {% if not request.user.is_superuser %}
+                            <li>
+                                <a class="menu-item flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-primary/20 transition{% if request.path == '/dashboard/jadwal/' %} bg-primary/10 font-bold text-primary{% endif %}"
+                                    href="{% url 'jadwal_master' %}">
+                                    <span class="material-icons text-primary">schedule</span> Jadwal Kuliah
+                                </a>
+                            </li>
+                        {% endif %}
                         {% if request.user.is_superuser %}
                             <li>
                                 <a class="menu-item flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-primary/20 transition{% if request.path == '/dashboard/dosen/' %} bg-primary/10 font-bold text-primary{% endif %}"

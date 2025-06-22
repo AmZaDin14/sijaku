@@ -31,7 +31,86 @@ from .models import *
 
 
 def index(request):
-    return render(request, "data/index.html")
+    tahun_akademik_aktif = TahunAkademik.objects.filter(aktif=True).first()
+    jadwal_ditemukan = False
+    jadwal_per_hari = {}
+    time_slots = []
+    if tahun_akademik_aktif:
+        semua_jadwal = Jadwal.objects.filter(
+            tahun_akademik=tahun_akademik_aktif
+        ).select_related("matakuliah", "kelas", "dosen", "ruangan")
+        if semua_jadwal.exists():
+            jadwal_ditemukan = True
+            # --- LOGIKA GRID ---
+            slots = []
+            current_time = time(7, 30)
+            end_time = time(16, 0)
+            interval = timedelta(minutes=30)
+            base_date = datetime.now().date()
+            while current_time <= end_time:
+                slots.append(current_time)
+                current_dt = datetime.combine(base_date, current_time)
+                current_time = (current_dt + interval).time()
+            time_slots = slots
+            hari_list = [dict(Jadwal.HARI_CHOICES)[base_date.weekday()]]
+            all_rooms = list(Ruangan.objects.all().order_by("nama"))
+            jadwal_per_hari = {}
+            for hari in hari_list:
+                jadwal_per_hari[hari] = {
+                    "rooms": all_rooms,
+                    "timetable": {
+                        slot.strftime("%H:%M"): {
+                            room.id: {"jadwal": None, "spanned": False}
+                            for room in all_rooms
+                        }
+                        for slot in slots
+                    },
+                }
+            for jadwal in semua_jadwal.order_by("hari", "ruangan__nama", "jam_mulai"):
+                hari_str = dict(Jadwal.HARI_CHOICES).get(jadwal.hari, jadwal.hari)
+                if hari_str not in hari_list:
+                    continue
+                start_dt = datetime.combine(base_date, jadwal.jam_mulai)
+                end_dt = datetime.combine(base_date, jadwal.jam_selesai)
+                duration = (end_dt - start_dt).total_seconds() / 60
+                rowspan = max(1, round(duration / 30))
+                placed = False
+                for slot in slots:
+                    slot_dt = datetime.combine(base_date, slot)
+                    if slot_dt >= start_dt and not placed:
+                        slot_str = slot.strftime("%H:%M")
+                        ruangan_id = jadwal.ruangan.id if jadwal.ruangan else None
+                        if ruangan_id and (
+                            jadwal_per_hari[hari_str]["timetable"][slot_str][
+                                ruangan_id
+                            ]["jadwal"]
+                            is None
+                        ):
+                            timetable_cell = jadwal_per_hari[hari_str]["timetable"][
+                                slot_str
+                            ][ruangan_id]
+                            timetable_cell["jadwal"] = jadwal
+                            timetable_cell["rowspan"] = rowspan
+                            placed = True
+                            for i in range(1, rowspan):
+                                next_slot_dt = slot_dt + (interval * i)
+                                if next_slot_dt.time() <= end_time:
+                                    next_slot_str = next_slot_dt.time().strftime(
+                                        "%H:%M"
+                                    )
+                                    jadwal_per_hari[hari_str]["timetable"][
+                                        next_slot_str
+                                    ][ruangan_id]["spanned"] = True
+    return render(
+        request,
+        "data/index.html",
+        {
+            "tahun_akademik_aktif": tahun_akademik_aktif,
+            "jadwal_ditemukan": jadwal_ditemukan,
+            "jadwal_per_hari": jadwal_per_hari,
+            "time_slots": time_slots,
+        },
+    )
 
 
 @login_required
@@ -981,3 +1060,84 @@ def validasi_pemetaan_detail_wd1(request, pk):
         "data/dashboard/wd1/validasi_pemetaan_detail.html",
         {"validasi": validasi, "histori": histori, "pemetaan_list": pemetaan_list},
     )
+
+
+def jadwal_semua(request):
+    context = {
+        "jadwal_ditemukan": False,
+        "tahun_akademik_aktif": None,
+        "jadwal_per_hari": {},
+        "time_slots": [],
+    }
+    try:
+        tahun_akademik_aktif = TahunAkademik.objects.get(aktif=True)
+        context["tahun_akademik_aktif"] = tahun_akademik_aktif
+        semua_jadwal = Jadwal.objects.filter(
+            tahun_akademik=tahun_akademik_aktif
+        ).select_related("matakuliah", "dosen", "kelas", "ruangan")
+        if semua_jadwal.exists():
+            context["jadwal_ditemukan"] = True
+            # --- LOGIKA GRID ---
+            slots = []
+            current_time = time(7, 30)
+            end_time = time(16, 0)
+            interval = timedelta(minutes=30)
+            base_date = datetime.now().date()
+            while current_time <= end_time:
+                slots.append(current_time)
+                current_dt = datetime.combine(base_date, current_time)
+                current_time = (current_dt + interval).time()
+            context["time_slots"] = slots
+            hari_list = [dict(Jadwal.HARI_CHOICES)[i] for i in range(5)]  # Senin-Jumat
+            all_rooms = list(Ruangan.objects.all().order_by("nama"))
+            jadwal_per_hari = {}
+            for hari in hari_list:
+                jadwal_per_hari[hari] = {
+                    "rooms": all_rooms,
+                    "timetable": {
+                        slot.strftime("%H:%M"): {
+                            room.id: {"jadwal": None, "spanned": False}
+                            for room in all_rooms
+                        }
+                        for slot in slots
+                    },
+                }
+            for jadwal in semua_jadwal.order_by("hari", "ruangan__nama", "jam_mulai"):
+                hari_str = dict(Jadwal.HARI_CHOICES).get(jadwal.hari, jadwal.hari)
+                if hari_str not in hari_list:
+                    continue
+                start_dt = datetime.combine(base_date, jadwal.jam_mulai)
+                end_dt = datetime.combine(base_date, jadwal.jam_selesai)
+                duration = (end_dt - start_dt).total_seconds() / 60
+                rowspan = max(1, round(duration / 30))
+                placed = False
+                for slot in slots:
+                    slot_dt = datetime.combine(base_date, slot)
+                    if slot_dt >= start_dt and not placed:
+                        slot_str = slot.strftime("%H:%M")
+                        ruangan_id = jadwal.ruangan.id if jadwal.ruangan else None
+                        if ruangan_id and (
+                            jadwal_per_hari[hari_str]["timetable"][slot_str][
+                                ruangan_id
+                            ]["jadwal"]
+                            is None
+                        ):
+                            timetable_cell = jadwal_per_hari[hari_str]["timetable"][
+                                slot_str
+                            ][ruangan_id]
+                            timetable_cell["jadwal"] = jadwal
+                            timetable_cell["rowspan"] = rowspan
+                            placed = True
+                            for i in range(1, rowspan):
+                                next_slot_dt = slot_dt + (interval * i)
+                                if next_slot_dt.time() <= end_time:
+                                    next_slot_str = next_slot_dt.time().strftime(
+                                        "%H:%M"
+                                    )
+                                    jadwal_per_hari[hari_str]["timetable"][
+                                        next_slot_str
+                                    ][ruangan_id]["spanned"] = True
+            context["jadwal_per_hari"] = jadwal_per_hari
+    except TahunAkademik.DoesNotExist:
+        pass
+    return render(request, "data/jadwal_semua.html", context)

@@ -144,4 +144,5 @@ urlpatterns = [
         name="validasi_pemetaan_detail_wd1",
     ),
     path("dashboard/wd1/genetika/", include("penjadwalan.urls")),
+    path("jadwal/", views.jadwal_semua, name="jadwal_semua"),
 ]

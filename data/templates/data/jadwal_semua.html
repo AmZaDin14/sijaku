@@ -1,6 +1,7 @@
-{% extends "data/dashboard/base.html" %}
-{% load data_tags %}
-{% block dashboard_content %}
+{% extends "data/guest.html" %}
+{% load static data_tags %}
+{% block guest_content %}
+<div class="max-w-6xl mx-auto py-10 px-2">
     <header class="text-center mb-8">
         <h1 class="text-4xl font-bold text-base-content">Jadwal Kuliah</h1>
         {% if tahun_akademik_aktif %}
@@ -77,4 +78,5 @@
             </div>
         </div>
     {% endif %}
+</div>
 {% endblock %}
