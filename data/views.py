@@ -36,6 +36,21 @@ def index(request):
 
 @login_required
 def dashboard(request):
+    # Jika user adalah dosen, tampilkan jadwal dosen
+    if hasattr(request.user, "dosen"):
+        dosen = request.user.dosen
+        tahun_akademik_aktif = TahunAkademik.objects.filter(aktif=True).first()
+        jadwal_list = []
+        if tahun_akademik_aktif:
+            jadwal_list = Jadwal.objects.filter(
+                dosen=dosen, tahun_akademik=tahun_akademik_aktif
+            ).select_related("matakuliah", "kelas", "ruangan")
+        return render(
+            request,
+            "data/dashboard/index.html",
+            {"jadwal_list": jadwal_list, "tahun_akademik_aktif": tahun_akademik_aktif},
+        )
+    # Default: dashboard biasa
     return render(request, "data/dashboard/index.html")
 
 
