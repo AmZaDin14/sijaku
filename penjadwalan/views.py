@@ -182,7 +182,11 @@ def genetika_start(request):
                     break
 
                 # Repair minor conflict jika tidak ada peningkatan selama 50 generasi dan konflik < 5
-                if no_improve_count == 50 and hard_violations < 5:
+                if (
+                    no_improve_count > 50
+                    and hard_violations > 0
+                    and hard_violations < 5
+                ):
                     progress_queue.put(
                         f"INFO: Repair minor conflict pada solusi terbaik di generasi {generation}..."
                     )

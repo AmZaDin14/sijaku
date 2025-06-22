@@ -18,7 +18,7 @@
                         </svg>
                     </label>
                 </div>
-                <div class="flex-1 px-2 text-xl font-bold">Data Dashboard</div>
+                <div class="flex-1 px-2 text-xl font-bold">Dashboard</div>
             </div>
             <main class="p-4">
                 {% block dashboard_content %}{% endblock %}
@@ -30,13 +30,19 @@
                 <div>
                     <div class="flex items-center gap-2 mb-4">
                         <img src="{% static 'logo.png' %}" alt="Logo" class="w-8 h-8 rounded"/>
-                        <h2 class="text-lg font-extrabold tracking-tight">DATA</h2>
+                        <h2 class="text-lg font-extrabold tracking-tight">SIJAKU</h2>
                     </div>
                     <ul class="space-y-1">
                         <li>
                             <a class="menu-item flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-primary/20 transition{% if request.path == '/dashboard/' %} bg-primary/10 font-bold text-primary{% endif %}"
                                href="{% url 'dashboard' %}">
                                 <span class="material-icons text-primary">dashboard</span> Dashboard
+                            </a>
+                        </li>
+                        <li>
+                            <a class="menu-item flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-primary/20 transition{% if request.path == '/dashboard/jadwal/' %} bg-primary/10 font-bold text-primary{% endif %}"
+                                href="{% url 'jadwal_master' %}">
+                                <span class="material-icons text-primary">schedule</span> Jadwal Kuliah
                             </a>
                         </li>
                         {% if request.user.is_superuser %}
@@ -102,12 +108,6 @@
                                 <a class="menu-item flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-primary/20 transition{% if request.path == '/dashboard/validasi-pemetaan/' %} bg-primary/10 font-bold text-primary{% endif %}"
                                    href="{% url 'validasi_pemetaan_list_wd1' %}">
                                     <span class="material-icons text-primary">fact_check</span> Validasi Pemetaan Dosen-MK
-                                </a>
-                            </li>
-                            <li>
-                                <a class="menu-item flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-primary/20 transition{% if request.path == '/dashboard/jadwal/' %} bg-primary/10 font-bold text-primary{% endif %}"
-                                   href="{% url 'jadwal_master' %}">
-                                    <span class="material-icons text-primary">schedule</span> Jadwal Kuliah
                                 </a>
                             </li>
                             <li>

@@ -48,10 +48,14 @@ def dashboard(request):
         return render(
             request,
             "data/dashboard/index.html",
-            {"jadwal_list": jadwal_list, "tahun_akademik_aktif": tahun_akademik_aktif},
+            {
+                "jadwal_list": jadwal_list,
+                "tahun_akademik_aktif": tahun_akademik_aktif,
+                "nama": dosen.nama,
+            },
         )
     # Default: dashboard biasa
-    return render(request, "data/dashboard/index.html")
+    return render(request, "data/dashboard/index.html", {"nama": "Admin"})
 
 
 def dosen_list(request):
