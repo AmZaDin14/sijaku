@@ -368,9 +368,19 @@ class GeneticAlgorithm:
             return
         for i in range(len(chromosome.genes)):
             if random.random() < self.mutation_rate:
-                gene_info = self.genes_to_schedule[i]
-                chromosome.genes[i] = self._create_random_gene(
-                    gene_info[0], gene_info[1]
+                gene = chromosome.genes[i]
+                # Mutasi hanya pada atribut penjadwalan, bukan sesi (matakuliah, kelas, dosen)
+                hari = random.choice(list(self.possible_slots.keys()))
+                durasi_key = f"{get_durasi_menit(gene.matakuliah)}_menit"
+                slot_list = self.possible_slots[hari].get(durasi_key, [])
+                while not slot_list:
+                    hari = random.choice(list(self.possible_slots.keys()))
+                    slot_list = self.possible_slots[hari].get(durasi_key, [])
+                slot_waktu = random.choice(slot_list)
+                ruangan = random.choice(self.list_ruangan)
+                # Update hanya penjadwalan, sesi tetap
+                chromosome.genes[i] = Gene(
+                    gene.matakuliah, gene.dosen, ruangan, hari, slot_waktu, gene.kelas
                 )
         if random.random() < 0.1:
             self._swap_mutation(chromosome)
