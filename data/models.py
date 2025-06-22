@@ -162,9 +162,9 @@ class PemetaanDosenMK(models.Model):
 class ValidasiPemetaanDosenMK(models.Model):
     STATUS_CHOICES = [
         ("draft", "Draft"),
-        ("diajukan", "Diajukan ke WD1"),
-        ("disetujui", "Disetujui WD1"),
-        ("ditolak", "Ditolak WD1"),
+        ("diajukan", "Diajukan"),
+        ("disetujui", "Disetujui"),
+        ("ditolak", "Ditolak"),
     ]
     tahun_akademik = models.OneToOneField(
         TahunAkademik, on_delete=models.CASCADE, related_name="validasi_pemetaan"

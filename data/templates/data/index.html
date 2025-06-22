@@ -8,61 +8,72 @@
         {% if tahun_akademik_aktif %}
             <h2 class="text-xl text-neutral-500 mt-2">Tahun Akademik: {{ tahun_akademik_aktif }} {{ tahun_akademik_aktif.semester|title}}</h2>
         {% endif %}
+        <form method="get" class="flex flex-wrap gap-2 justify-center items-end mt-6 mb-4">
+            <div>
+                <label class="block text-xs mb-1">Semester</label>
+                <input type="number" name="semester" min="1" max="14" class="input input-bordered input-sm w-24" value="{{ filter_semester|default:'' }}">
+            </div>
+            <div>
+                <label class="block text-xs mb-1">Hari</label>
+                <select name="hari" class="select select-bordered select-sm w-28">
+                    <option value="">Semua</option>
+                    {% for val, label in hari_choices %}
+                        <option value="{{ val }}" {% if filter_hari == val %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label class="block text-xs mb-1">Kelas</label>
+                <select name="kelas" class="select select-bordered select-sm w-32">
+                    <option value="">Semua</option>
+                    {% for kelas in kelas_list %}
+                        <option value="{{ kelas.id }}" {% if filter_kelas == kelas.id|stringformat:'s' %}selected{% endif %}>{{ kelas }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <button type="submit" class="btn btn-primary btn-sm">Filter</button>
+            {% if filter_semester or filter_hari or filter_kelas %}
+                <a href="?" class="btn btn-ghost btn-sm">Reset</a>
+            {% endif %}
+        </form>
     </header>
-    {% if jadwal_ditemukan %}
-        <div class="space-y-12">
-            {% for hari, data_hari in jadwal_per_hari.items %}
-                <div>
-                    <h2 class="text-3xl font-bold text-center mb-4 text-primary">{{ hari }}</h2>
-                    <div class="overflow-x-auto bg-base-100 rounded-lg shadow-xl">
-                        <table class="table w-full border-collapse">
-                            <colgroup>
-                                <col style="width: 90px;">
-                                {% with room_count=data_hari.rooms|length %}
-                                    {% for ruangan in data_hari.rooms %}
-                                        <col style="width: {{ 100|divisibleby:room_count|floatformat:0 }}%; min-width: 160px;">
-                                    {% endfor %}
-                                {% endwith %}
-                            </colgroup>
-                            <thead class="bg-base-300">
+    {% if jadwal_list is not None %}
+        {% if jadwal_list %}
+            <div class="overflow-x-auto rounded-xl shadow-lg bg-base-100">
+                <table class="table w-full table-zebra">
+                    <thead class="bg-base-200 text-base-content">
+                        <tr>
+                            <th>Hari</th>
+                            <th>Jam</th>
+                            <th>Mata Kuliah</th>
+                            <th>Dosen Pengampu</th>
+                            <th>Kelas</th>
+                            <th>Ruangan</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% regroup jadwal_list by get_hari_display as hari_grouped %}
+                        {% for hari in hari_grouped %}
+                            {% for jadwal in hari.list %}
                                 <tr>
-                                    <th class="border p-2 text-center">Waktu</th>
-                                    {% for ruangan in data_hari.rooms %}<th class="border p-2 text-center">{{ ruangan.nama }}</th>{% endfor %}
+                                    {% if forloop.first %}
+                                        <td rowspan="{{ hari.list|length }}" class="align-center font-semibold">{{ hari.grouper }}</td>
+                                    {% endif %}
+                                    <td>{{ jadwal.jam_mulai|time:"H:i" }} - {{ jadwal.jam_selesai|time:"H:i" }}</td>
+                                    <td>{{ jadwal.matakuliah.nama }}</td>
+                                    <td>{{ jadwal.dosen.nama|default:"-" }}</td>
+                                    <td>{{ jadwal.kelas }}</td>
+                                    <td>{{ jadwal.ruangan.nama|default:"-" }}</td>
                                 </tr>
-                            </thead>
-                            <tbody>
-                                {% for slot in time_slots %}
-                                    {% with slot_str=slot|time:"H:i" %}
-                                        <tr style="height:64px;">
-                                            <td class="border p-2 font-mono text-center text-sm align-center">{{ slot_str }}</td>
-                                            {% for ruangan in data_hari.rooms %}
-                                                {% with cell=data_hari.timetable|get_item:slot_str|get_item:ruangan.id %}
-                                                    {% if not cell.spanned %}
-                                                        {% if cell.jadwal %}
-                                                            <td class="border align-top" rowspan="{{ cell.rowspan|default:1 }}" style="height:{{ 64|mul:cell.rowspan|default:64 }}px; min-height:64px;">
-                                                                <div class="card bg-accent text-accent-content h-full rounded-md p-2 flex flex-col justify-start text-xs shadow-md min-h-[64px]">
-                                                                    <span class="font-bold break-words">{{ cell.jadwal.matakuliah.nama }}</span>
-                                                                    <span class="text-xs opacity-80 mt-1 break-words">{{ cell.jadwal.dosen.nama|default:"-" }}</span>
-                                                                    <div class="mt-auto pt-1">
-                                                                        <span class="font-semibold badge badge-neutral">{{ cell.jadwal.kelas }}</span>
-                                                                    </div>
-                                                                </div>
-                                                            </td>
-                                                        {% else %}
-                                                            <td class="border align-top" style="height:64px; min-height:64px;"></td>
-                                                        {% endif %}
-                                                    {% endif %}
-                                                {% endwith %}
-                                            {% endfor %}
-                                        </tr>
-                                    {% endwith %}
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            {% endfor %}
-        </div>
+                            {% endfor %}
+                            <tr><td colspan="6" style="height:6px; border:none;"></td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="alert alert-warning mt-4">Tidak ada jadwal yang sesuai</div>
+        {% endif %}
     {% else %}
         <div class="text-center py-20">
             <div class="alert alert-warning max-w-md mx-auto">

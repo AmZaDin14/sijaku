@@ -2,15 +2,15 @@
 {% block dashboard_content %}
     <div class="max-w-3xl mx-auto p-4">
         <h1 class="text-2xl font-bold mb-6">Daftar Pengajuan Validasi Pemetaan Dosen-MK</h1>
-        <table class="table table-zebra w-full">
-            <thead>
+        <table class="table table-zebra w-full rounded-xl overflow-hidden">
+            <thead class="bg-base-200 text-base-content">
                 <tr>
-                    <th>Tahun Akademik</th>
-                    <th>Semester</th>
-                    <th>Status</th>
-                    <th>Diajukan Oleh</th>
-                    <th>Diajukan Pada</th>
-                    <th>Aksi</th>
+                    <th class="text-left">Tahun Akademik</th>
+                    <th class="text-left">Semester</th>
+                    <th class="text-left">Status</th>
+                    <th class="text-left">Diajukan Oleh</th>
+                    <th class="text-left">Diajukan Pada</th>
+                    <th class="text-left">Aksi</th>
                 </tr>
             </thead>
             <tbody>
@@ -40,7 +40,7 @@
                     </tr>
                 {% empty %}
                     <tr>
-                        <td colspan="5" class="text-center">Belum ada pengajuan validasi.</td>
+                        <td colspan="6" class="text-center py-6 text-base-content/60">Belum ada pengajuan validasi.</td>
                     </tr>
                 {% endfor %}
             </tbody>
