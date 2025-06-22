@@ -351,8 +351,32 @@ class GeneticAlgorithm:
                 return Chromosome(parent1.genes[:])
             point = random.randint(1, len(self.genes_to_schedule) - 1)
             child_genes = parent1.genes[:point] + parent2.genes[point:]
-            return Chromosome(child_genes)
+            child = Chromosome(child_genes)
+            self._repair_chromosome(child)
+            return child
         return Chromosome(parent1.genes[:])
+
+    def _repair_chromosome(self, chromosome):
+        # Buat set sesi yang seharusnya ada
+        expected_sessions = set(
+            (p.matakuliah.id, k.id, p.dosen_pengampu.id)
+            for p, k in self.genes_to_schedule
+        )
+        # Buat set sesi yang sudah ada di child
+        seen_sessions = set()
+        new_genes = []
+        for gene in chromosome.genes:
+            key = (gene.matakuliah.id, gene.kelas.id, gene.dosen.id)
+            if key not in seen_sessions:
+                new_genes.append(gene)
+                seen_sessions.add(key)
+        # Tambahkan sesi yang hilang
+        missing_sessions = expected_sessions - seen_sessions
+        for p, k in self.genes_to_schedule:
+            key = (p.matakuliah.id, k.id, p.dosen_pengampu.id)
+            if key in missing_sessions:
+                new_genes.append(self._create_random_gene(p, k))
+        chromosome.genes = new_genes
 
     def _swap_mutation(self, chromosome):
         if len(chromosome.genes) < 2:
@@ -418,6 +442,52 @@ class GeneticAlgorithm:
                 violations += 1
         return violations
 
+    def _is_conflict(self, gene, genes, idx):
+        # Cek apakah gene bentrok dengan gene lain dalam satu chromosome
+        time_blocks = get_time_blocks(
+            gene.slot_waktu[0], gene.slot_waktu[1], self.interval
+        )
+        dosen_id = getattr(gene.dosen, "id", getattr(gene.dosen, "pk", None))
+        ruangan_id = getattr(gene.ruangan, "id", getattr(gene.ruangan, "pk", None))
+        kelas_id = getattr(gene.kelas, "id", getattr(gene.kelas, "pk", None))
+        for j, other in enumerate(genes):
+            if j == idx:
+                continue
+            other_time_blocks = get_time_blocks(
+                other.slot_waktu[0], other.slot_waktu[1], self.interval
+            )
+            for block in time_blocks:
+                if block in other_time_blocks and gene.hari == other.hari:
+                    if (
+                        dosen_id
+                        == getattr(other.dosen, "id", getattr(other.dosen, "pk", None))
+                        or ruangan_id
+                        == getattr(
+                            other.ruangan, "id", getattr(other.ruangan, "pk", None)
+                        )
+                        or kelas_id
+                        == getattr(other.kelas, "id", getattr(other.kelas, "pk", None))
+                    ):
+                        return True
+        if gene.matakuliah.tipe == "teori" and gene.ruangan.jenis != "kelas":
+            return True
+        return False
+
+    def _repair_minor_conflicts(self, chromosome):
+        # Perbaiki gene yang konflik satu per satu
+        for i, gene in enumerate(chromosome.genes):
+            if self._is_conflict(gene, chromosome.genes, i):
+                pemetaan = next(
+                    (
+                        p
+                        for p, k in self.genes_to_schedule
+                        if k == gene.kelas and p.matakuliah == gene.matakuliah
+                    ),
+                    None,
+                )
+                if pemetaan:
+                    chromosome.genes[i] = self._create_random_gene(pemetaan, gene.kelas)
+
     def run(self):
         self._create_initial_population()
         best_fitness = -1.0
@@ -448,6 +518,12 @@ class GeneticAlgorithm:
                         f"Early stopping at generation {generation} (no improvement for 100 generations, no conflict). Best fitness: {best_fitness:.4f}"
                     )
                     break
+                # Tambahkan repair minor conflict jika tidak ada peningkatan selama 50 generasi dan konflik < 5
+                if no_improve_count > 50 and hard_violations < 5:
+                    print(f"Repair minor conflict pada generasi {generation}...")
+                    self._repair_minor_conflicts(current_best)
+                    self._calculate_fitness(current_best)
+                    self.population[0] = current_best
             if current_best.fitness == 1.0:
                 print("Solusi sempurna ditemukan!")
                 break

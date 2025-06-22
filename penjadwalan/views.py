@@ -154,7 +154,10 @@ def genetika_start(request):
                 current_best = ga.population[0]
 
                 if (generation % 10 == 0) or (generation == ga.generations - 1):
-                    msg = f"Generasi {generation}: Fitness Terbaik={current_best.fitness:.4f}"
+                    avg_fitness = sum(c.fitness for c in ga.population) / len(
+                        ga.population
+                    )
+                    msg = f"Generasi {generation}: Fitness Terbaik={current_best.fitness:.4f}, Rata-rata={avg_fitness:.4f}"
                     progress_queue.put(msg)
 
                 if current_best.fitness > best_fitness_overall:
@@ -177,6 +180,15 @@ def genetika_start(request):
                 if current_best.fitness == 1.0:
                     progress_queue.put("Solusi sempurna ditemukan!")
                     break
+
+                # Repair minor conflict jika tidak ada peningkatan selama 50 generasi dan konflik < 5
+                if no_improve_count == 50 and hard_violations < 5:
+                    progress_queue.put(
+                        f"INFO: Repair minor conflict pada solusi terbaik di generasi {generation}..."
+                    )
+                    ga._repair_minor_conflicts(current_best)
+                    ga._calculate_fitness(current_best)
+                    ga.population[0] = current_best
 
                 next_gen = ga.population[:2]
                 while len(next_gen) < ga.population_size:
