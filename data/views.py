@@ -133,6 +133,27 @@ def dashboard(request):
                 "nama": dosen.nama,
             },
         )
+    # Jika user adalah superuser, tampilkan statistik Kaprodi, WD1, jumlah dosen, jumlah mata kuliah, jumlah ruangan, jumlah kelas
+    if request.user.is_superuser:
+        kaprodi = Jabatan.objects.filter(nama="kaprodi").first()
+        wd1 = Jabatan.objects.filter(nama="wd1").first()
+        jumlah_dosen = Dosen.objects.count()
+        jumlah_matakuliah = MataKuliah.objects.count()
+        jumlah_ruangan = Ruangan.objects.count()
+        jumlah_kelas = Kelas.objects.count()
+        return render(
+            request,
+            "data/dashboard/index.html",
+            {
+                "nama": "Admin",
+                "kaprodi": kaprodi.dosen if kaprodi else None,
+                "wd1": wd1.dosen if wd1 else None,
+                "jumlah_dosen": jumlah_dosen,
+                "jumlah_matakuliah": jumlah_matakuliah,
+                "jumlah_ruangan": jumlah_ruangan,
+                "jumlah_kelas": jumlah_kelas,
+            },
+        )
     # Default: dashboard biasa
     return render(request, "data/dashboard/index.html", {"nama": "Admin"})
 

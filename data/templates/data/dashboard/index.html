@@ -1,7 +1,53 @@
 {% extends "data/dashboard/base.html" %}
 {% block dashboard_content %}
-    <p>Selamat Datang di Dashboard Sistem Penjadwalan Perkuliahan Prodi Ilmu Komputer</p>
-    <p>Halo, {{ nama }}!</p>
+    <p class="text-xl font-semibold mb-2">Selamat Datang di Dashboard Sistem Penjadwalan Perkuliahan Prodi Ilmu Komputer</p>
+    <p class="mb-6">Halo, {{ nama }}!</p>
+    {% if request.user.is_superuser %}
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 my-8">
+            <div class="bg-gradient-to-br from-primary to-secondary text-white rounded-2xl shadow-lg p-6 flex flex-col items-center">
+                <div class="text-4xl mb-2">
+                    <span class="material-icons">account_circle</span>
+                </div>
+                <div class="font-bold text-lg">Kaprodi</div>
+                <div class="mt-1 text-base">{% if kaprodi %}{{ kaprodi }}{% else %}<span class="opacity-60">Belum diatur</span>{% endif %}</div>
+            </div>
+            <div class="bg-gradient-to-br from-secondary to-accent text-white rounded-2xl shadow-lg p-6 flex flex-col items-center">
+                <div class="text-4xl mb-2">
+                    <span class="material-icons">supervisor_account</span>
+                </div>
+                <div class="font-bold text-lg">WD1</div>
+                <div class="mt-1 text-base">{% if wd1 %}{{ wd1 }}{% else %}<span class="opacity-60">Belum diatur</span>{% endif %}</div>
+            </div>
+            <div class="bg-gradient-to-br from-accent to-primary text-white rounded-2xl shadow-lg p-6 flex flex-col items-center">
+                <div class="text-4xl mb-2">
+                    <span class="material-icons">groups</span>
+                </div>
+                <div class="font-bold text-lg">Jumlah Dosen</div>
+                <div class="mt-1 text-3xl font-extrabold">{{ jumlah_dosen }}</div>
+            </div>
+            <div class="bg-gradient-to-br from-primary to-info text-white rounded-2xl shadow-lg p-6 flex flex-col items-center">
+                <div class="text-4xl mb-2">
+                    <span class="material-icons">menu_book</span>
+                </div>
+                <div class="font-bold text-lg">Jumlah Mata Kuliah</div>
+                <div class="mt-1 text-3xl font-extrabold">{{ jumlah_matakuliah }}</div>
+            </div>
+            <div class="bg-gradient-to-br from-info to-success text-white rounded-2xl shadow-lg p-6 flex flex-col items-center">
+                <div class="text-4xl mb-2">
+                    <span class="material-icons">meeting_room</span>
+                </div>
+                <div class="font-bold text-lg">Jumlah Ruangan</div>
+                <div class="mt-1 text-3xl font-extrabold">{{ jumlah_ruangan }}</div>
+            </div>
+            <div class="bg-gradient-to-br from-success to-primary text-white rounded-2xl shadow-lg p-6 flex flex-col items-center">
+                <div class="text-4xl mb-2">
+                    <span class="material-icons">class</span>
+                </div>
+                <div class="font-bold text-lg">Jumlah Kelas</div>
+                <div class="mt-1 text-3xl font-extrabold">{{ jumlah_kelas }}</div>
+            </div>
+        </div>
+    {% endif %}
     {% if jadwal_list is not None %}
         <h2 class="text-2xl font-bold mt-8 mb-4">
             Jadwal Anda ({{ tahun_akademik_aktif }} {{ tahun_akademik_aktif.semester|title }})

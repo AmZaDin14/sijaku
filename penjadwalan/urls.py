@@ -11,4 +11,9 @@ urlpatterns = [
     ),
     path("genetika/cancel/", views.genetika_cancel, name="genetika_cancel"),
     path("dashboard/wd1/genetika/start/", views.genetika_start, name="genetika_start"),
+    path(
+        "print-jadwal/",
+        views.print_jadwal_per_semester,
+        name="print_jadwal_per_semester",
+    ),
 ]

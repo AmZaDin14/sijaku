@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mx-auto p-4 print:bg-white print:text-black print:p-0 print:m-0">
+    <div class="flex justify-between items-center mb-4">
+        <div class="print:hidden">
+            <h1 class="text-2xl font-bold">Jadwal Perkuliahan</h1>
+            <div class="text-base-content/70 text-xs">Tahun Akademik: <b>{{ tahun_akademik }}</b></div>
+        </div>
+        <form method="get" class="flex items-center gap-2 print:hidden">
+            <span class="text-xs text-base-content/70">Tanggal Cetak:</span>
+            <input type="date" name="tanggal_cetak" value="{{ tanggal_cetak }}" class="input input-xs input-bordered text-xs" style="width:auto;" onchange="this.form.submit()">
+            <button type="button" onclick="window.print()" class="btn btn-primary btn-xs">Print</button>
+        </form>
+    </div>
+    {% if error %}
+        <div class="alert alert-error text-xs">{{ error }}</div>
+    {% else %}
+        {% for semester, jadwal_list in jadwal_per_semester.items %}
+            <div class="mb-4 print:break-after-page print:break-inside-avoid">
+                <!-- KOP SURAT: tampil hanya saat print -->
+                <div class="kop-surat print:block hidden" style="margin-bottom:8px;">
+                    <div style="display:flex; align-items:center; gap:12px;">
+                        <img src="/static/logo.png" alt="Logo" style="height:60px; margin-right:8px;">
+                        <div style="text-align:center; width:100%;">
+                            <div style="font-size:13px; font-weight:bold; letter-spacing:1px;">UNIVERSITAS MUHAMMADIYAH METRO</div>
+                            <div style="font-size:16px; font-weight:bold;">FAKULTAS ILMU KOMPUTER</div>
+                            <div style="font-size:11px;">Alamat: Jl. Gatot Subroto No. 100 Yosodadi Kota Metro Telp./Fax. (0725) 42445 - 42454</div>
+                            <div style="font-size:11px;">Website: https://fikom.ummetro.ac.id &nbsp; Email: fikom.ummetro@gmail.com</div>
+                        </div>
+                    </div>
+                    <hr style="border:2px solid #222; margin:6px 0 10px 0;">
+                </div>
+                <!-- Judul Jadwal -->
+                <div class="print:block hidden" style="text-align:center; margin-bottom:8px;">
+                    <div style="font-size:15px; font-weight:bold; text-transform:uppercase;">JADWAL KULIAH SEMESTER {{ tahun_akademik.semester }}</div>
+                    <div style="font-size:13px; font-weight:bold;">PROGRAM STUDI S1 ILMU KOMPUTER</div>
+                    <div style="font-size:12px;">TAHUN AKADEMIK {{ tahun_akademik }}</div>
+                </div>
+                <h2 class="text-lg font-bold mb-1">Semester {{ semester }}</h2>
+                <div class="overflow-x-auto rounded shadow bg-base-100 print:shadow-none">
+                    <table class="table w-full text-xs leading-tight print-bordered-table">
+                        <thead class="bg-base-200 text-base-content">
+                            <tr>
+                                <th class="px-1 py-1">Hari</th>
+                                <th class="px-1 py-1">Jam</th>
+                                <th class="px-1 py-1">Mata Kuliah</th>
+                                <th class="px-1 py-1">Kelas</th>
+                                <th class="px-1 py-1">Dosen</th>
+                                <th class="px-1 py-1">Ruangan</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% regroup jadwal_list by get_hari_display as hari_grouped %}
+                            {% for hari in hari_grouped %}
+                                {% for jadwal in hari.list %}
+                                    <tr>
+                                        {% if forloop.first %}
+                                            <td rowspan="{{ hari.list|length }}" class="align-center font-semibold px-1 py-1">{{ hari.grouper }}</td>
+                                        {% endif %}
+                                        <td class="px-1 py-1">{{ jadwal.jam_mulai|time:"H:i" }} - {{ jadwal.jam_selesai|time:"H:i" }}</td>
+                                        <td class="px-1 py-1">{{ jadwal.matakuliah.nama }}</td>
+                                        <td class="px-1 py-1">{{ jadwal.kelas.nama }}</td>
+                                        <td class="px-1 py-1">{{ jadwal.dosen|default:"-" }}</td>
+                                        <td class="px-1 py-1">{{ jadwal.ruangan.nama|default:"-" }}</td>
+                                    </tr>
+                                {% endfor %}
+                                <tr><td colspan="6" style="height: 6px; border: none;"></td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <!-- Tempat tanda tangan (print only) -->
+                <div class="print:block hidden" style="width:100%; margin-top:40px;">
+                    <div style="width:320px; float:right; text-align:left;">
+                        <div style="margin-bottom:32px;">
+                            Metro, {{ tanggal_cetak_long }}<br>
+                            An. Dekan<br>
+                            Wakil Dekan I,<br><br><br><br>
+                            <span style="font-weight:bold; text-decoration:underline;">{{ wd1.nama }}</span><br>
+                            NIDN. {{ wd1.nidn }}<br>
+                        </div>
+                    </div>
+                    <div style="clear:both;"></div>
+                </div>
+            </div>
+        {% empty %}
+            <div class="alert alert-warning text-xs">Tidak ada jadwal ditemukan.</div>
+        {% endfor %}
+    {% endif %}
+</div>
+<style>
+@media print {
+  html, body { font-size: 10px !important; margin: 0 !important; padding: 0 !important; }
+  body { width: 100vw !important; }
+  .container, .container.mx-auto, .print\:p-0, .print\:m-0 { padding: 0 !important; margin: 0 !important; max-width: 100vw !important; width: 100vw !important; }
+  .print\:break-after-page { break-after: page; page-break-after: always; }
+  .print\:break-inside-avoid { break-inside: avoid; page-break-inside: avoid; }
+  table, th, td { font-size: 10px !important; padding: 2px 3px !important; }
+  h1, h2, h3, h4 { margin: 0 0 2px 0 !important; }
+  .mb-4, .mb-8 { margin-bottom: 8px !important; }
+  .print-bordered-table, .print-bordered-table th, .print-bordered-table td {
+    border: 1px solid #222 !important;
+    border-collapse: collapse !important;
+  }
+  .kop-surat { display: block !important; }
+}
+.kop-surat { display: none; }
+.print-bordered-table, .print-bordered-table th, .print-bordered-table td {
+  border: 1px solid #222;
+  border-collapse: collapse;
+}
+</style>
+{% endblock %}

@@ -4,7 +4,10 @@ import threading
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.http import JsonResponse, StreamingHttpResponse
 from django.shortcuts import render
+from django.utils.dateparse import parse_date
 from django.views.decorators.csrf import csrf_exempt
+
+from data.models import Jabatan
 
 # Thread-safe queue for progress updates
 progress_queue = queue.Queue()
@@ -265,3 +268,69 @@ def genetika_cancel(request):
         else:
             return JsonResponse({"status": "not_running"})
     return JsonResponse({"status": "invalid_method"}, status=405)
+
+
+@login_required
+def print_jadwal_per_semester(request):
+    from data.models import TahunAkademik
+    from penjadwalan.models import Jadwal
+
+    tahun_akademik_aktif = TahunAkademik.objects.filter(aktif=True).first()
+    if not tahun_akademik_aktif:
+        return render(
+            request,
+            "penjadwalan/print_jadwal.html",
+            {"error": "Tahun akademik aktif tidak ditemukan."},
+        )
+
+    # Ambil semua jadwal untuk tahun akademik aktif
+    jadwal_qs = Jadwal.objects.filter(
+        tahun_akademik=tahun_akademik_aktif
+    ).select_related("matakuliah", "dosen", "kelas", "ruangan")
+    # Kelompokkan berdasarkan semester mata kuliah
+    jadwal_per_semester = {}
+    for jadwal in jadwal_qs:
+        semester = jadwal.matakuliah.semester
+        if semester not in jadwal_per_semester:
+            jadwal_per_semester[semester] = []
+        jadwal_per_semester[semester].append(jadwal)
+    # Urutkan berdasarkan semester
+    jadwal_per_semester = dict(sorted(jadwal_per_semester.items()))
+    # Urutkan setiap semester: hari, matakuliah.nama, jam_mulai
+    for semester, jadwal_list in jadwal_per_semester.items():
+        jadwal_per_semester[semester] = sorted(
+            jadwal_list, key=lambda j: (j.hari, j.matakuliah.nama.lower(), j.jam_mulai)
+        )
+
+    wd1 = Jabatan.objects.filter(nama="wd1").first().dosen
+
+    import locale
+
+    # Set locale ke Indonesia (jika tersedia di sistem)
+    try:
+        locale.setlocale(locale.LC_TIME, "id_ID.UTF-8")
+    except locale.Error:
+        try:
+            locale.setlocale(locale.LC_TIME, "id_ID")
+        except locale.Error:
+            locale.setlocale(locale.LC_TIME, "")  # fallback ke default
+
+    tanggal_cetak_str = request.GET.get("tanggal_cetak", "")
+    tanggal_obj = parse_date(tanggal_cetak_str)
+    if tanggal_obj:
+        tanggal_cetak_long = tanggal_obj.strftime("%d %B %Y")
+    else:
+        tanggal_cetak_long = ""
+
+    return render(
+        request,
+        "penjadwalan/print_jadwal.html",
+        {
+            "tahun_akademik": tahun_akademik_aktif,
+            "jadwal_per_semester": jadwal_per_semester,
+            "wd1": wd1,
+            "tanggal_cetak": tanggal_cetak_str,
+            "tanggal_cetak_long": tanggal_cetak_long,
+            "tanggal": tanggal_obj,
+        },
+    )
