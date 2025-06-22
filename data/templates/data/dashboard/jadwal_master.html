@@ -6,11 +6,13 @@
         {% if tahun_akademik_aktif %}
             <h2 class="text-xl text-neutral-500 mt-2">Tahun Akademik: {{ tahun_akademik_aktif }}</h2>
         {% endif %}
+        {% if request.user|is_wd1 %}
         <div class="flex justify-center mt-4">
             <a href="{% url 'print_jadwal_per_semester' %}" target="_blank" class="btn btn-primary btn-sm shadow print:hidden">
                 <span class="material-icons align-middle mr-1">print</span> Print Jadwal
             </a>
         </div>
+        {% endif %}
     </header>
     {% if jadwal_ditemukan %}
         <div class="space-y-12">
