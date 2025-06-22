@@ -2,6 +2,32 @@
 {% block dashboard_content %}
 <div class="max-w-2xl mx-auto p-4">
   <h1 class="text-2xl font-bold mb-4">Inisiasi Algoritma Genetika Penjadwalan</h1>
+  <form id="param-form" class="mb-4 flex flex-wrap gap-4 items-end">
+    <div>
+      <label class="block text-xs font-semibold mb-1" for="population_size">Population Size</label>
+      <input type="number" id="population_size" name="population_size" class="input input-bordered input-sm w-28" min="10" max="1000" value="100" required>
+    </div>
+    <div>
+      <label class="block text-xs font-semibold mb-1" for="crossover_rate">Crossover Rate</label>
+      <input type="number" id="crossover_rate" name="crossover_rate" class="input input-bordered input-sm w-28" min="0" max="1" step="0.01" value="0.9" required>
+    </div>
+    <div>
+      <label class="block text-xs font-semibold mb-1" for="mutation_rate">Mutation Rate</label>
+      <input type="number" id="mutation_rate" name="mutation_rate" class="input input-bordered input-sm w-28" min="0" max="1" step="0.01" value="0.02" required>
+    </div>
+    <div>
+      <label class="block text-xs font-semibold mb-1" for="tournament_size">Tournament Size</label>
+      <input type="number" id="tournament_size" name="tournament_size" class="input input-bordered input-sm w-28" min="2" max="100" value="5" required>
+    </div>
+    <div>
+      <label class="block text-xs font-semibold mb-1" for="generations">Generations</label>
+      <input type="number" id="generations" name="generations" class="input input-bordered input-sm w-28" min="10" max="5000" value="500" required>
+    </div>
+    <div>
+      <label class="block text-xs font-semibold mb-1" for="menit_per_sks">Menit per SKS</label>
+      <input type="number" id="menit_per_sks" name="menit_per_sks" class="input input-bordered input-sm w-28" min="30" max="120" value="30" required>
+    </div>
+  </form>
   <div class="mb-4">
     <!-- Tambahkan tombol Batal, sembunyikan secara default -->
     <button id="start-btn" class="btn btn-primary">Mulai Algoritma Genetika</button>
@@ -14,22 +40,30 @@
 </div>
 <script>
 const startBtn = document.getElementById('start-btn');
-const cancelBtn = document.getElementById('cancel-btn'); // Ambil elemen tombol batal
+const cancelBtn = document.getElementById('cancel-btn');
 const progressLog = document.getElementById('progress-log');
 const statusSpan = document.getElementById('status');
+const paramForm = document.getElementById('param-form');
 let eventSource = null;
 
 function startGenetika() {
-  startBtn.style.display = 'none'; // Sembunyikan tombol mulai
-  cancelBtn.style.display = 'inline-block'; // Tampilkan tombol batal
+  startBtn.style.display = 'none';
+  cancelBtn.style.display = 'inline-block';
   cancelBtn.disabled = false;
-  
   statusSpan.textContent = 'Memulai...';
-  progressLog.textContent = ''; // Bersihkan log sebelumnya
+  progressLog.textContent = '';
+
+  // Ambil nilai parameter dari form
+  const formData = new FormData(paramForm);
+  const params = Object.fromEntries(formData.entries());
 
   fetch('{% url "genetika_start" %}', {
-    method: 'POST', 
-    headers: {'X-CSRFToken': '{{ csrf_token }}'}
+    method: 'POST',
+    headers: {
+      'X-CSRFToken': '{{ csrf_token }}',
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(params)
   })
   .then(resp => resp.json())
   .then(data => {
@@ -48,9 +82,9 @@ function startGenetika() {
 }
 
 function cancelGenetika() {
-  cancelBtn.disabled = true; // Nonaktifkan tombol setelah diklik
+  cancelBtn.disabled = true;
   statusSpan.textContent = 'Membatalkan...';
-  fetch('{% url "genetika_cancel" %}', { // Ganti dengan URL view cancel Anda
+  fetch('{% url "genetika_cancel" %}', {
     method: 'POST',
     headers: {'X-CSRFToken': '{{ csrf_token }}'}
   })
@@ -67,19 +101,20 @@ function cancelGenetika() {
 
 function listenProgress() {
   eventSource = new EventSource('{% url "genetika_progress" %}');
-  
   eventSource.onmessage = function(e) {
     if (e.data === '__DONE__') {
       statusSpan.textContent = 'Selesai.';
-      startBtn.style.display = 'inline-block'; // Tampilkan lagi tombol start
-      cancelBtn.style.display = 'none'; // Sembunyikan tombol batal
+      startBtn.style.display = 'inline-block';
+      cancelBtn.style.display = 'none';
       if(eventSource) eventSource.close();
     } else {
       progressLog.textContent += e.data + '\n';
       progressLog.scrollTop = progressLog.scrollHeight;
+      // Autoscroll parent div agar selalu ke bawah
+      const progressBox = document.getElementById('progress-box');
+      progressBox.scrollTop = progressBox.scrollHeight;
     }
   };
-
   eventSource.onerror = function() {
     statusSpan.textContent = 'Koneksi terputus.';
     startBtn.style.display = 'inline-block';
@@ -89,7 +124,6 @@ function listenProgress() {
 }
 
 startBtn.addEventListener('click', startGenetika);
-cancelBtn.addEventListener('click', cancelGenetika); // Tambahkan event listener untuk tombol batal
-
+cancelBtn.addEventListener('click', cancelGenetika);
 </script>
 {% endblock %}

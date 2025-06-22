@@ -53,22 +53,69 @@ def genetika_start(request):
     if progress_state["running"]:
         return JsonResponse({"status": "already_running"})
 
+    # Ambil parameter dari request body (JSON)
+    import json
+
+    try:
+        params = json.loads(request.body.decode())
+        population_size = int(params.get("population_size", 100))
+        crossover_rate = float(params.get("crossover_rate", 0.9))
+        mutation_rate = float(params.get("mutation_rate", 0.02))
+        tournament_size = int(params.get("tournament_size", 5))
+        generations = int(params.get("generations", 500))
+        menit_per_sks = int(params.get("menit_per_sks", 30))
+    except Exception as e:
+        return JsonResponse({"status": "invalid_params", "error": str(e)}, status=400)
+
     def run_genetika():
+        from data import utils as data_utils
         from data.management.commands.buat_jadwal import GeneticAlgorithm
+        from data.models import (
+            TahunAkademik,
+            ValidasiPemetaanDosenMK,  # perbaiki nama model
+        )
 
         progress_state["running"] = True
         progress_state["done"] = False
         progress_state["result"] = None
-        # Pastikan flag pembatalan False di awal setiap proses
         progress_state["stop_requested"] = False
+
+        # Ambil tahun akademik aktif
+        tahun_akademik_aktif = TahunAkademik.objects.filter(aktif=True).first()
+        if not tahun_akademik_aktif:
+            progress_queue.put("Error: Tahun akademik aktif tidak ditemukan.")
+            progress_queue.put("__DONE__")
+            progress_state["running"] = False
+            progress_state["done"] = True
+            progress_state["stop_requested"] = False
+            return
+
+        # Validasi pemetaan dosen harus ada dan status disetujui
+        validasi = (
+            ValidasiPemetaanDosenMK.objects.filter(tahun_akademik=tahun_akademik_aktif)
+            .order_by("-id")
+            .first()
+        )
+        if not validasi or validasi.status != "disetujui":
+            progress_queue.put(
+                "Error: Validasi pemetaan dosen untuk tahun akademik aktif belum disetujui."
+            )
+            progress_queue.put("__DONE__")
+            progress_state["running"] = False
+            progress_state["done"] = True
+            progress_state["stop_requested"] = False
+            return
+
+        # Set DURASI_PER_SKS secara dinamis
+        data_utils.DURASI_PER_SKS = menit_per_sks
 
         try:
             ga = GeneticAlgorithm(
-                population_size=100,
-                crossover_rate=0.9,
-                mutation_rate=0.02,
-                tournament_size=5,
-                generations=500,
+                population_size=population_size,
+                crossover_rate=crossover_rate,
+                mutation_rate=mutation_rate,
+                tournament_size=tournament_size,
+                generations=generations,
             )
             progress_queue.put("Inisialisasi selesai. Data berhasil dimuat.")
             progress_queue.put(
@@ -146,28 +193,34 @@ def genetika_start(request):
             )
             # === SIMPAN JADWAL KE DATABASE ===
             if best_chromosome:
-                from penjadwalan.models import Jadwal
-
-                tahun_akademik_aktif = ga.tahun_akademik_aktif
-                # Hapus jadwal lama untuk tahun akademik aktif
-                Jadwal.objects.filter(tahun_akademik=tahun_akademik_aktif).delete()
-                jadwal_baru_list = [
-                    Jadwal(
-                        tahun_akademik=tahun_akademik_aktif,
-                        matakuliah=gene.matakuliah,
-                        dosen=gene.dosen,
-                        kelas=gene.kelas,
-                        ruangan=gene.ruangan,
-                        hari=gene.hari,
-                        jam_mulai=gene.slot_waktu[0],
-                        jam_selesai=gene.slot_waktu[1],
+                hard_violations = ga._count_hard_constraint_violations(best_chromosome)
+                if hard_violations > 0:
+                    progress_queue.put(
+                        f"Tidak disimpan: Jadwal masih memiliki {hard_violations} konflik hard constraint."
                     )
-                    for gene in best_chromosome.genes
-                ]
-                Jadwal.objects.bulk_create(jadwal_baru_list)
-                progress_queue.put(
-                    f"Jadwal baru berhasil disimpan: {len(jadwal_baru_list)} sesi."
-                )
+                else:
+                    from penjadwalan.models import Jadwal
+
+                    tahun_akademik_aktif = ga.tahun_akademik_aktif
+                    # Hapus jadwal lama untuk tahun akademik aktif
+                    Jadwal.objects.filter(tahun_akademik=tahun_akademik_aktif).delete()
+                    jadwal_baru_list = [
+                        Jadwal(
+                            tahun_akademik=tahun_akademik_aktif,
+                            matakuliah=gene.matakuliah,
+                            dosen=gene.dosen,
+                            kelas=gene.kelas,
+                            ruangan=gene.ruangan,
+                            hari=gene.hari,
+                            jam_mulai=gene.slot_waktu[0],
+                            jam_selesai=gene.slot_waktu[1],
+                        )
+                        for gene in best_chromosome.genes
+                    ]
+                    Jadwal.objects.bulk_create(jadwal_baru_list)
+                    progress_queue.put(
+                        f"Jadwal baru berhasil disimpan: {len(jadwal_baru_list)} sesi."
+                    )
             else:
                 progress_queue.put("Tidak ada solusi jadwal yang dapat disimpan.")
             progress_queue.put(f"Selesai. Fitness terbaik: {progress_state['result']}")
