@@ -73,7 +73,6 @@
             </div>
         </form>
         <div class="mb-4">
-            <!-- Tambahkan tombol Batal, sembunyikan secara default -->
             <button id="start-btn" class="btn btn-primary">Mulai Algoritma Genetika</button>
             <button id="cancel-btn" class="btn btn-error" style="display: none;">Batalkan Proses</button>
             <span id="status" class="ml-4 text-sm"></span>
@@ -89,7 +88,7 @@ const cancelBtn = document.getElementById('cancel-btn');
 const progressLog = document.getElementById('progress-log');
 const statusSpan = document.getElementById('status');
 const paramForm = document.getElementById('param-form');
-let eventSource = null;
+let socket = null;
 
 function startGenetika() {
   startBtn.style.display = 'none';
@@ -112,12 +111,9 @@ function startGenetika() {
   })
   .then(resp => resp.json())
   .then(data => {
-    if (data.status === 'started') {
-      listenProgress();
-      statusSpan.textContent = 'Proses berjalan...';
-    } else if (data.status === 'already_running') {
-      statusSpan.textContent = 'Algoritma sudah berjalan.';
-      listenProgress();
+    if (data.status === 'started' || data.status === 'already_running') {
+      connectWebSocket();
+      statusSpan.textContent = data.status === 'started' ? 'Proses berjalan...' : 'Algoritma sudah berjalan...';
     } else {
       statusSpan.textContent = 'Gagal memulai.';
       startBtn.style.display = 'inline-block';
@@ -144,27 +140,38 @@ function cancelGenetika() {
   });
 }
 
-function listenProgress() {
-  eventSource = new EventSource('{% url "genetika_progress" %}');
-  eventSource.onmessage = function(e) {
-    if (e.data === '__DONE__') {
+function connectWebSocket() {
+  socket = new WebSocket(`ws://${window.location.host}/ws/genetika/progress/`);
+
+  socket.onopen = function(e) {
+    console.log('WebSocket connection established');
+  };
+
+  socket.onmessage = function(e) {
+    const data = JSON.parse(e.data);
+    if (data.message === '__DONE__') {
       statusSpan.textContent = 'Selesai.';
       startBtn.style.display = 'inline-block';
       cancelBtn.style.display = 'none';
-      if(eventSource) eventSource.close();
+      socket.close();
     } else {
-      progressLog.textContent += e.data + '\n';
+      progressLog.textContent += data.message + '\n';
       progressLog.scrollTop = progressLog.scrollHeight;
       // Autoscroll parent div agar selalu ke bawah
       const progressBox = document.getElementById('progress-box');
       progressBox.scrollTop = progressBox.scrollHeight;
     }
   };
-  eventSource.onerror = function() {
+
+  socket.onclose = function(e) {
+    console.error('WebSocket connection closed unexpectedly:', e.code, e.reason);
     statusSpan.textContent = 'Koneksi terputus.';
     startBtn.style.display = 'inline-block';
     cancelBtn.style.display = 'none';
-    if(eventSource) eventSource.close();
+  };
+
+  socket.onerror = function(err) {
+    console.error('WebSocket error observed:', err);
   };
 }
 

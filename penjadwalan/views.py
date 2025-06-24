@@ -1,6 +1,8 @@
 import queue
 import threading
 
+from asgiref.sync import async_to_sync
+from channels.layers import get_channel_layer
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.http import JsonResponse, StreamingHttpResponse
 from django.shortcuts import render
@@ -10,7 +12,7 @@ from django.views.decorators.csrf import csrf_exempt
 from data.models import Jabatan
 
 # Thread-safe queue for progress updates
-progress_queue = queue.Queue()
+progress_queue1 = queue.Queue()
 # Tambahkan 'stop_requested' untuk mengelola permintaan pembatalan
 progress_state = {
     "running": False,
@@ -18,6 +20,21 @@ progress_state = {
     "result": None,
     "stop_requested": False,  # Flag untuk sinyal pembatalan
 }
+
+channel_layer = get_channel_layer()
+
+
+def send_ws_message(message):
+    """
+    Kirim pesan ke WebSocket channel layer.
+    """
+    async_to_sync(channel_layer.group_send)(
+        "genetika_progress",  # Ganti dengan nama grup yang sesuai
+        {
+            "type": "send_progress",
+            "message": message,
+        },
+    )
 
 
 def is_wd1(user):
@@ -32,21 +49,21 @@ def genetika_wd1_view(request):
     return render(request, "penjadwalan/genetika_wd1.html")
 
 
-@login_required
-@user_passes_test(is_wd1)
-def genetika_progress(request):
-    def event_stream():
-        while True:
-            try:
-                msg = progress_queue.get(timeout=1)
-                yield f"data: {msg}\n\n".encode()
-                if msg == "__DONE__":
-                    break
-            except queue.Empty:
-                if progress_state["done"]:
-                    break
+# @login_required
+# @user_passes_test(is_wd1)
+# def genetika_progress(request):
+#     def event_stream():
+#         while True:
+#             try:
+#                 msg = progress_queue.get(timeout=1)
+#                 yield f"data: {msg}\n\n".encode()
+#                 if msg == "__DONE__":
+#                     break
+#             except queue.Empty:
+#                 if progress_state["done"]:
+#                     break
 
-    return StreamingHttpResponse(event_stream(), content_type="text/event-stream")
+#     return StreamingHttpResponse(event_stream(), content_type="text/event-stream")
 
 
 @login_required
@@ -86,8 +103,8 @@ def genetika_start(request):
         # Ambil tahun akademik aktif
         tahun_akademik_aktif = TahunAkademik.objects.filter(aktif=True).first()
         if not tahun_akademik_aktif:
-            progress_queue.put("Error: Tahun akademik aktif tidak ditemukan.")
-            progress_queue.put("__DONE__")
+            send_ws_message("Error: Tahun akademik aktif tidak ditemukan.")
+            send_ws_message("__DONE__")
             progress_state["running"] = False
             progress_state["done"] = True
             progress_state["stop_requested"] = False
@@ -100,10 +117,10 @@ def genetika_start(request):
             .first()
         )
         if not validasi or validasi.status != "disetujui":
-            progress_queue.put(
+            send_ws_message(
                 "Error: Validasi pemetaan dosen untuk tahun akademik aktif belum disetujui."
             )
-            progress_queue.put("__DONE__")
+            send_ws_message("__DONE__")
             progress_state["running"] = False
             progress_state["done"] = True
             progress_state["stop_requested"] = False
@@ -120,17 +137,17 @@ def genetika_start(request):
                 tournament_size=tournament_size,
                 generations=generations,
             )
-            progress_queue.put("Inisialisasi selesai. Data berhasil dimuat.")
-            progress_queue.put(
+            send_ws_message("Inisialisasi selesai. Data berhasil dimuat.")
+            send_ws_message(
                 f"Total sesi yang akan dijadwalkan: {len(ga.genes_to_schedule)}"
             )
             ga._create_initial_population()
-            progress_queue.put(
+            send_ws_message(
                 f"Populasi awal sebanyak {len(ga.population)} individu berhasil dibuat."
             )
 
             if not ga.population:
-                progress_queue.put(
+                send_ws_message(
                     "Error: Gagal membuat populasi awal. Proses dihentikan."
                 )
                 raise ValueError(
@@ -144,7 +161,7 @@ def genetika_start(request):
                 # === PEMERIKSAAN PEMBATALAN ===
                 # Di setiap awal generasi, periksa apakah ada permintaan untuk berhenti.
                 if progress_state.get("stop_requested", False):
-                    progress_queue.put(
+                    send_ws_message(
                         "INFO: Proses pembatalan diterima. Menghentikan evolusi..."
                     )
                     break  # Keluar dari loop generasi
@@ -161,7 +178,7 @@ def genetika_start(request):
                         ga.population
                     )
                     msg = f"Generasi {generation}: Fitness Terbaik={current_best.fitness:.4f}, Rata-rata={avg_fitness:.4f}"
-                    progress_queue.put(msg)
+                    send_ws_message(msg)
 
                 if current_best.fitness > best_fitness_overall:
                     best_fitness_overall = current_best.fitness
@@ -175,13 +192,13 @@ def genetika_start(request):
 
                 hard_violations = ga._count_hard_constraint_violations(current_best)
                 if no_improve_count > 100 and hard_violations == 0:
-                    progress_queue.put(
+                    send_ws_message(
                         "INFO: Proses dihentikan lebih awal (solusi stabil dan tanpa konflik)."
                     )
                     break
 
                 if current_best.fitness == 1.0:
-                    progress_queue.put("Solusi sempurna ditemukan!")
+                    send_ws_message("Solusi sempurna ditemukan!")
                     break
 
                 # Repair minor conflict jika tidak ada peningkatan selama 50 generasi dan konflik < 5
@@ -190,7 +207,7 @@ def genetika_start(request):
                     and hard_violations > 0
                     and hard_violations < 5
                 ):
-                    progress_queue.put(
+                    send_ws_message(
                         f"INFO: Repair minor conflict pada solusi terbaik di generasi {generation}..."
                     )
                     ga._repair_minor_conflicts(current_best)
@@ -214,7 +231,7 @@ def genetika_start(request):
             if best_chromosome:
                 hard_violations = ga._count_hard_constraint_violations(best_chromosome)
                 if hard_violations > 0:
-                    progress_queue.put(
+                    send_ws_message(
                         f"Tidak disimpan: Jadwal masih memiliki {hard_violations} konflik hard constraint."
                     )
                 else:
@@ -237,17 +254,17 @@ def genetika_start(request):
                         for gene in best_chromosome.genes
                     ]
                     Jadwal.objects.bulk_create(jadwal_baru_list)
-                    progress_queue.put(
+                    send_ws_message(
                         f"Jadwal baru berhasil disimpan: {len(jadwal_baru_list)} sesi."
                     )
             else:
-                progress_queue.put("Tidak ada solusi jadwal yang dapat disimpan.")
-            progress_queue.put(f"Selesai. Fitness terbaik: {progress_state['result']}")
+                send_ws_message("Tidak ada solusi jadwal yang dapat disimpan.")
+            send_ws_message(f"Selesai. Fitness terbaik: {progress_state['result']}")
 
         except Exception as e:
-            progress_queue.put(f"Error: {e}")
+            send_ws_message(f"Error: {e}")
         finally:
-            progress_queue.put("__DONE__")
+            send_ws_message("__DONE__")
             progress_state["running"] = False
             progress_state["done"] = True
             progress_state["stop_requested"] = False  # Reset flag untuk run berikutnya
