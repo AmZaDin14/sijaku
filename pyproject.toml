@@ -11,4 +11,5 @@ dependencies = [
     "django-tailwind[reload]>=4.0.1",
     "djlint>=1.36.4",
     "pymysql>=1.1.1",
+    "uvicorn>=0.34.3",
 ]
