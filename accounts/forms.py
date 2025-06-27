@@ -6,9 +6,10 @@ from .models import User
 
 
 class UserRegistrationForm(forms.ModelForm):
-    password = forms.CharField(widget=forms.PasswordInput, label="Password")
+    username = forms.CharField(label="NIDN")
+    password = forms.CharField(widget=forms.PasswordInput, label="Kata Sandi")
     password_confirm = forms.CharField(
-        widget=forms.PasswordInput, label="Confirm Password"
+        widget=forms.PasswordInput, label="Konfirmasi Kata Sandi"
     )
 
     class Meta:
@@ -19,12 +20,16 @@ class UserRegistrationForm(forms.ModelForm):
         cleaned_data = super().clean()
         password = cleaned_data.get("password")
         password_confirm = cleaned_data.get("password_confirm")
+        username = cleaned_data.get("username")
+
+        if password and len(password) < 6:
+            self.add_error("password", "Kata sandi minimal 6 karakter.")
 
         if password and password_confirm and password != password_confirm:
-            raise forms.ValidationError("Passwords do not match.")
+            self.add_error("password_confirm", "Kata sandi tidak cocok.")
 
-        if not Dosen.objects.filter(nidn=cleaned_data.get("username")).exists():
-            raise forms.ValidationError("Data tidak ditemukan dalam sistem.")
+        if username and not Dosen.objects.filter(nidn=username).exists():
+            self.add_error("username", "NIDN tidak cocok dengan data dosen yang ada.")
 
         return cleaned_data
 

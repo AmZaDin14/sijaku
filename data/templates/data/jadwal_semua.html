@@ -1,82 +1,86 @@
 {% extends "data/guest.html" %}
 {% load static data_tags %}
 {% block guest_content %}
-<div class="max-w-6xl mx-auto py-10 px-2">
-    <header class="text-center mb-8">
-        <h1 class="text-4xl font-bold text-base-content">Jadwal Kuliah</h1>
-        {% if tahun_akademik_aktif %}
-            <h2 class="text-xl text-neutral-500 mt-2">Tahun Akademik: {{ tahun_akademik_aktif }}</h2>
-        {% endif %}
-    </header>
-    {% if jadwal_ditemukan %}
-        <div class="space-y-12">
-            <!-- Loop utama untuk setiap HARI -->
-            {% for hari, data_hari in jadwal_per_hari.items %}
-                <div>
-                    <h2 class="text-3xl font-bold text-center mb-4 text-primary">{{ hari }}</h2>
-                    <div class="overflow-x-auto bg-base-100 rounded-lg shadow-xl">
-                        <table class="table w-full border-collapse">
-                            <colgroup>
-                                <col style="width: 90px;">
-                                {% with room_count=data_hari.rooms|length %}
-                                    {% for ruangan in data_hari.rooms %}
-                                        <col style="width: {{ 100|divisibleby:room_count|floatformat:0 }}%; min-width: 160px;">
-                                    {% endfor %}
-                                {% endwith %}
-                            </colgroup>
-                            <thead class="bg-base-300">
-                                <tr>
-                                    <th class="border p-2 text-center">Waktu</th>
-                                    {% for ruangan in data_hari.rooms %}<th class="border p-2 text-center">{{ ruangan.nama }}</th>{% endfor %}
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <!-- Loop untuk setiap SLOT WAKTU -->
-                                {% for slot in time_slots %}
-                                    {% with slot_str=slot|time:"H:i" %}
-                                        <tr style="height:80px;">
-                                            <td class="border p-2 font-mono text-center text-sm align-center">{{ slot_str }}</td>
-                                            <!-- Loop untuk setiap RUANGAN -->
-                                            {% for ruangan in data_hari.rooms %}
-                                                {% with cell=data_hari.timetable|get_item:slot_str|get_item:ruangan.id %}
-                                                    {% if not cell.spanned %}
-                                                        {% if cell.jadwal %}
-                                                            <td class="border align-top" rowspan="{{ cell.rowspan|default:1 }}" style="height:{{ 80|mul:cell.rowspan|default:64 }}px; min-height:64px;">
-                                                                <div class="card bg-accent text-accent-content h-full rounded-md p-2 flex flex-col justify-start text-xs shadow-md min-h-[64px]">
-                                                                    <span class="font-bold break-words">{{ cell.jadwal.matakuliah.nama }}</span>
-                                                                    <span class="text-xs opacity-80 mt-1 break-words">{{ cell.jadwal.dosen.nama|default:"-" }}</span>
-                                                                    <div class="mt-auto pt-1">
-                                                                        <span class="font-semibold badge badge-neutral">{{ cell.jadwal.kelas }}</span>
-                                                                    </div>
-                                                                </div>
-                                                            </td>
-                                                        {% else %}
-                                                            <td class="border align-top" style="height:64px; min-height:64px;"></td>
-                                                        {% endif %}
-                                                    {% endif %}
-                                                {% endwith %}
-                                            {% endfor %}
-                                        </tr>
+    <div class="max-w-6xl mx-auto py-10 px-2">
+        <header class="text-center mb-8">
+            <h1 class="text-4xl font-bold text-base-content">Jadwal Kuliah</h1>
+            {% if tahun_akademik_aktif %}
+                <h2 class="text-xl text-neutral-500 mt-2">Tahun Akademik: {{ tahun_akademik_aktif }}</h2>
+            {% endif %}
+        </header>
+        {% if jadwal_ditemukan %}
+            <div class="space-y-12">
+                <!-- Loop utama untuk setiap HARI -->
+                {% for hari, data_hari in jadwal_per_hari.items %}
+                    <div>
+                        <h2 class="text-3xl font-bold text-center mb-4 text-primary">{{ hari }}</h2>
+                        <div class="overflow-x-auto bg-base-100 rounded-lg shadow-xl">
+                            <table class="table w-full border-collapse">
+                                <colgroup>
+                                    <col style="width: 90px;">
+                                    {% with room_count=data_hari.rooms|length %}
+                                        {% for ruangan in data_hari.rooms %}
+                                            <col style="width: {{ 100|divisibleby:room_count|floatformat:0 }}%;
+                                                        min-width: 160px">
+                                        {% endfor %}
                                     {% endwith %}
-                                {% endfor %}
-                            </tbody>
-                        </table>
+                                </colgroup>
+                                <thead class="bg-base-300">
+                                    <tr>
+                                        <th class="border p-2 text-center">Waktu</th>
+                                        {% for ruangan in data_hari.rooms %}<th class="border p-2 text-center">{{ ruangan.nama }}</th>{% endfor %}
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Loop untuk setiap SLOT WAKTU -->
+                                    {% for slot in time_slots %}
+                                        {% with slot_str=slot|time:"H:i" %}
+                                            <tr style="height:80px;">
+                                                <td class="border p-2 font-mono text-center text-sm align-center">{{ slot_str }}</td>
+                                                <!-- Loop untuk setiap RUANGAN -->
+                                                {% for ruangan in data_hari.rooms %}
+                                                    {% with cell=data_hari.timetable|get_item:slot_str|get_item:ruangan.id %}
+                                                        {% if not cell.spanned %}
+                                                            {% if cell.jadwal %}
+                                                                <td class="border align-top"
+                                                                    rowspan="{{ cell.rowspan|default:1 }}"
+                                                                    style="height:{{ 80|mul:cell.rowspan|default:64 }}px;
+                                                                           min-height:64px">
+                                                                    <div class="card bg-accent text-accent-content h-full rounded-md p-2 flex flex-col justify-start text-xs shadow-md min-h-[64px]">
+                                                                        <span class="font-bold break-words">{{ cell.jadwal.matakuliah.nama }}</span>
+                                                                        <span class="text-xs opacity-80 mt-1 break-words">{{ cell.jadwal.dosen.nama|default:"-" }}</span>
+                                                                        <div class="mt-auto pt-1">
+                                                                            <span class="font-semibold badge badge-neutral">{{ cell.jadwal.kelas }}</span>
+                                                                        </div>
+                                                                    </div>
+                                                                </td>
+                                                            {% else %}
+                                                                <td class="border align-top" style="height:64px; min-height:64px;"></td>
+                                                            {% endif %}
+                                                        {% endif %}
+                                                    {% endwith %}
+                                                {% endfor %}
+                                            </tr>
+                                        {% endwith %}
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
-                </div>
-            {% endfor %}
-        </div>
-    {% else %}
-        <div class="text-center py-20">
-            <div class="alert alert-warning max-w-md mx-auto">
-                <svg xmlns="http://www.w3.org/2000/svg"
-                     class="stroke-current shrink-0 h-6 w-6"
-                     fill="none"
-                     viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                </svg>
-                <span>Jadwal tidak ditemukan untuk tahun akademik yang aktif saat ini.</span>
+                {% endfor %}
             </div>
-        </div>
-    {% endif %}
-</div>
+        {% else %}
+            <div class="text-center py-20">
+                <div class="alert alert-warning max-w-md mx-auto">
+                    <svg xmlns="http://www.w3.org/2000/svg"
+                         class="stroke-current shrink-0 h-6 w-6"
+                         fill="none"
+                         viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                    <span>Jadwal tidak ditemukan untuk tahun akademik yang aktif saat ini.</span>
+                </div>
+            </div>
+        {% endif %}
+    </div>
 {% endblock %}

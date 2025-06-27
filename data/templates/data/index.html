@@ -1,91 +1,102 @@
 {% extends "data/guest.html" %}
 {% load static data_tags %}
 {% block guest_content %}
-<div class="max-w-6xl mx-auto py-10 px-2">
-    <header class="text-center mb-8">
-        <h1 class="text-3xl font-bold text-base-content mb-2">Selamat Datang di Sistem Penjadwalan Kuliah</h1>
-        <p class="text-lg text-gray-600 mb-4">Lihat jadwal kuliah untuk hari ini di bawah ini.</p>
-        {% if tahun_akademik_aktif %}
-            <h2 class="text-xl text-neutral-500 mt-2">Tahun Akademik: {{ tahun_akademik_aktif }} {{ tahun_akademik_aktif.semester|title}}</h2>
-        {% endif %}
-        <form method="get" class="flex flex-wrap gap-2 justify-center items-end mt-6 mb-4">
-            <div>
-                <label class="block text-xs mb-1">Semester</label>
-                <input type="number" name="semester" min="1" max="14" class="input input-bordered input-sm w-24" value="{{ filter_semester|default:'' }}">
-            </div>
-            <div>
-                <label class="block text-xs mb-1">Hari</label>
-                <select name="hari" class="select select-bordered select-sm w-28">
-                    <option value="">Semua</option>
-                    {% for val, label in hari_choices %}
-                        <option value="{{ val }}" {% if filter_hari == val %}selected{% endif %}>{{ label }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-            <div>
-                <label class="block text-xs mb-1">Kelas</label>
-                <select name="kelas" class="select select-bordered select-sm w-32">
-                    <option value="">Semua</option>
-                    {% for kelas in kelas_list %}
-                        <option value="{{ kelas.id }}" {% if filter_kelas == kelas.id|stringformat:'s' %}selected{% endif %}>{{ kelas }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-            <button type="submit" class="btn btn-primary btn-sm">Filter</button>
-            {% if filter_semester or filter_hari or filter_kelas %}
-                <a href="?" class="btn btn-ghost btn-sm">Reset</a>
+    <div class="max-w-6xl mx-auto py-10 px-2">
+        <header class="text-center mb-8">
+            <h1 class="text-3xl font-bold text-base-content mb-2">Selamat Datang di Sistem Penjadwalan Kuliah</h1>
+            <p class="text-lg text-gray-600 mb-4">Lihat jadwal kuliah untuk hari ini di bawah ini.</p>
+            {% if tahun_akademik_aktif %}
+                <h2 class="text-xl text-neutral-500 mt-2">
+                    Tahun Akademik: {{ tahun_akademik_aktif }} {{ tahun_akademik_aktif.semester|title }}
+                </h2>
             {% endif %}
-        </form>
-    </header>
-    {% if jadwal_list is not None %}
-        {% if jadwal_list %}
-            <div class="overflow-x-auto rounded-xl shadow-lg bg-base-100">
-                <table class="table w-full table-zebra">
-                    <thead class="bg-base-200 text-base-content">
-                        <tr>
-                            <th>Hari</th>
-                            <th>Jam</th>
-                            <th>Mata Kuliah</th>
-                            <th>Dosen Pengampu</th>
-                            <th>Kelas</th>
-                            <th>Ruangan</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% regroup jadwal_list by get_hari_display as hari_grouped %}
-                        {% for hari in hari_grouped %}
-                            {% for jadwal in hari.list %}
+            <form method="get"
+                  class="flex flex-wrap gap-2 justify-center items-end mt-6 mb-4">
+                <div>
+                    <label class="block text-xs mb-1">Semester</label>
+                    <input type="number"
+                           name="semester"
+                           min="1"
+                           max="14"
+                           class="input input-bordered input-sm w-24"
+                           value="{{ filter_semester|default:'' }}">
+                </div>
+                <div>
+                    <label class="block text-xs mb-1">Hari</label>
+                    <select name="hari" class="select select-bordered select-sm w-28">
+                        <option value="">Semua</option>
+                        {% for val, label in hari_choices %}
+                            <option value="{{ val }}" {% if filter_hari == val %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs mb-1">Kelas</label>
+                    <select name="kelas" class="select select-bordered select-sm w-32">
+                        <option value="">Semua</option>
+                        {% for kelas in kelas_list %}
+                            <option value="{{ kelas.id }}"
+                                    {% if filter_kelas == kelas.id|stringformat:'s' %}selected{% endif %}>
+                                {{ kelas }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary btn-sm">Filter</button>
+                {% if filter_semester or filter_hari or filter_kelas %}<a href="?" class="btn btn-ghost btn-sm">Reset</a>{% endif %}
+            </form>
+        </header>
+        {% if jadwal_list is not None %}
+            {% if jadwal_list %}
+                <div class="overflow-x-auto rounded-xl shadow-lg bg-base-100">
+                    <table class="table w-full table-zebra">
+                        <thead class="bg-base-200 text-base-content">
+                            <tr>
+                                <th>Hari</th>
+                                <th>Jam</th>
+                                <th>Mata Kuliah</th>
+                                <th>Dosen Pengampu</th>
+                                <th>Kelas</th>
+                                <th>Ruangan</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% regroup jadwal_list by get_hari_display as hari_grouped %}
+                            {% for hari in hari_grouped %}
+                                {% for jadwal in hari.list %}
+                                    <tr>
+                                        {% if forloop.first %}
+                                            <td rowspan="{{ hari.list|length }}" class="align-center font-semibold">{{ hari.grouper }}</td>
+                                        {% endif %}
+                                        <td>{{ jadwal.jam_mulai|time:"H:i" }} - {{ jadwal.jam_selesai|time:"H:i" }}</td>
+                                        <td>{{ jadwal.matakuliah.nama }}</td>
+                                        <td>{{ jadwal.dosen.nama|default:"-" }}</td>
+                                        <td>{{ jadwal.kelas }}</td>
+                                        <td>{{ jadwal.ruangan.nama|default:"-" }}</td>
+                                    </tr>
+                                {% endfor %}
                                 <tr>
-                                    {% if forloop.first %}
-                                        <td rowspan="{{ hari.list|length }}" class="align-center font-semibold">{{ hari.grouper }}</td>
-                                    {% endif %}
-                                    <td>{{ jadwal.jam_mulai|time:"H:i" }} - {{ jadwal.jam_selesai|time:"H:i" }}</td>
-                                    <td>{{ jadwal.matakuliah.nama }}</td>
-                                    <td>{{ jadwal.dosen.nama|default:"-" }}</td>
-                                    <td>{{ jadwal.kelas }}</td>
-                                    <td>{{ jadwal.ruangan.nama|default:"-" }}</td>
+                                    <td colspan="6" style="height:6px; border:none;"></td>
                                 </tr>
                             {% endfor %}
-                            <tr><td colspan="6" style="height:6px; border:none;"></td></tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="alert alert-warning mt-4">Tidak ada jadwal yang sesuai</div>
+            {% endif %}
         {% else %}
-            <div class="alert alert-warning mt-4">Tidak ada jadwal yang sesuai</div>
-        {% endif %}
-    {% else %}
-        <div class="text-center py-20">
-            <div class="alert alert-warning max-w-md mx-auto">
-                <svg xmlns="http://www.w3.org/2000/svg"
-                     class="stroke-current shrink-0 h-6 w-6"
-                     fill="none"
-                     viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                </svg>
-                <span>Jadwal tidak ditemukan untuk hari ini.</span>
+            <div class="text-center py-20">
+                <div class="alert alert-warning max-w-md mx-auto">
+                    <svg xmlns="http://www.w3.org/2000/svg"
+                         class="stroke-current shrink-0 h-6 w-6"
+                         fill="none"
+                         viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                    <span>Jadwal tidak ditemukan untuk hari ini.</span>
+                </div>
             </div>
-        </div>
-    {% endif %}
-</div>
+        {% endif %}
+    </div>
 {% endblock %}

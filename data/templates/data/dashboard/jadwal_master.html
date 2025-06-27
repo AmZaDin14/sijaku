@@ -7,11 +7,13 @@
             <h2 class="text-xl text-neutral-500 mt-2">Tahun Akademik: {{ tahun_akademik_aktif }}</h2>
         {% endif %}
         {% if request.user|is_wd1 %}
-        <div class="flex justify-center mt-4">
-            <a href="{% url 'print_jadwal_per_semester' %}" target="_blank" class="btn btn-primary btn-sm shadow print:hidden">
-                <span class="material-icons align-middle mr-1">print</span> Print Jadwal
-            </a>
-        </div>
+            <div class="flex justify-center mt-4">
+                <a href="{% url 'print_jadwal_per_semester' %}"
+                   target="_blank"
+                   class="btn btn-primary btn-sm shadow print:hidden">
+                    <span class="material-icons align-middle mr-1">print</span> Print Jadwal
+                </a>
+            </div>
         {% endif %}
     </header>
     {% if jadwal_ditemukan %}
@@ -26,7 +28,8 @@
                                 <col style="width: 90px;">
                                 {% with room_count=data_hari.rooms|length %}
                                     {% for ruangan in data_hari.rooms %}
-                                        <col style="width: {{ 100|divisibleby:room_count|floatformat:0 }}%; min-width: 160px;">
+                                        <col style="width: {{ 100|divisibleby:room_count|floatformat:0 }}%;
+                                                    min-width: 160px">
                                     {% endfor %}
                                 {% endwith %}
                             </colgroup>
@@ -47,7 +50,10 @@
                                                 {% with cell=data_hari.timetable|get_item:slot_str|get_item:ruangan.id %}
                                                     {% if not cell.spanned %}
                                                         {% if cell.jadwal %}
-                                                            <td class="border align-top" rowspan="{{ cell.rowspan|default:1 }}" style="height:{{ 80|mul:cell.rowspan|default:64 }}px; min-height:64px;">
+                                                            <td class="border align-top"
+                                                                rowspan="{{ cell.rowspan|default:1 }}"
+                                                                style="height:{{ 80|mul:cell.rowspan|default:64 }}px;
+                                                                       min-height:64px">
                                                                 <div class="card bg-accent text-accent-content h-full rounded-md p-2 flex flex-col justify-start text-xs shadow-md min-h-[64px]">
                                                                     <span class="font-bold break-words">{{ cell.jadwal.matakuliah.nama }}</span>
                                                                     <span class="text-xs opacity-80 mt-1 break-words">{{ cell.jadwal.dosen.nama|default:"-" }}</span>
