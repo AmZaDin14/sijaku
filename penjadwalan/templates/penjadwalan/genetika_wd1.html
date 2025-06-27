@@ -141,7 +141,8 @@ function cancelGenetika() {
 }
 
 function connectWebSocket() {
-  socket = new WebSocket(`ws://${window.location.host}/ws/genetika/progress/`);
+  const protocol = window.location.protocol === "https:" ? "wss" : "ws";
+  const socket = new WebSocket(`${protocol}://${window.location.host}/ws/genetika/progress/`);
 
   socket.onopen = function(e) {
     console.log('WebSocket connection established');
