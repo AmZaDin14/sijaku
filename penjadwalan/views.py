@@ -1,18 +1,17 @@
-import queue
 import threading
 
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
 from django.contrib.auth.decorators import login_required, user_passes_test
-from django.http import JsonResponse, StreamingHttpResponse
+from django.http import JsonResponse
 from django.shortcuts import render
 from django.utils.dateparse import parse_date
 from django.views.decorators.csrf import csrf_exempt
 
 from data.models import Jabatan
 
-# Thread-safe queue for progress updates
-progress_queue1 = queue.Queue()
+from .models import JadwalGenetika
+
 # Tambahkan 'stop_requested' untuk mengelola permintaan pembatalan
 progress_state = {
     "running": False,
@@ -38,7 +37,10 @@ def send_ws_message(message):
 
 
 def is_wd1(user):
-    return hasattr(user, "dosen") and user.dosen.jabatan.filter(nama="wd1").exists()
+    return (
+        hasattr(user, "dosen")
+        and user.dosen.jabatan.filter(nama="wd1").exists()
+    )
 
 
 @login_required
@@ -47,23 +49,6 @@ def genetika_wd1_view(request):
     # Saat halaman dimuat, pastikan status pembatalan direset
     progress_state["stop_requested"] = False
     return render(request, "penjadwalan/genetika_wd1.html")
-
-
-# @login_required
-# @user_passes_test(is_wd1)
-# def genetika_progress(request):
-#     def event_stream():
-#         while True:
-#             try:
-#                 msg = progress_queue.get(timeout=1)
-#                 yield f"data: {msg}\n\n".encode()
-#                 if msg == "__DONE__":
-#                     break
-#             except queue.Empty:
-#                 if progress_state["done"]:
-#                     break
-
-#     return StreamingHttpResponse(event_stream(), content_type="text/event-stream")
 
 
 @login_required
@@ -85,7 +70,9 @@ def genetika_start(request):
         generations = int(params.get("generations", 500))
         menit_per_sks = int(params.get("menit_per_sks", 30))
     except Exception as e:
-        return JsonResponse({"status": "invalid_params", "error": str(e)}, status=400)
+        return JsonResponse(
+            {"status": "invalid_params", "error": str(e)}, status=400
+        )
 
     def run_genetika():
         from data import utils as data_utils
@@ -112,7 +99,9 @@ def genetika_start(request):
 
         # Validasi pemetaan dosen harus ada dan status disetujui
         validasi = (
-            ValidasiPemetaanDosenMK.objects.filter(tahun_akademik=tahun_akademik_aktif)
+            ValidasiPemetaanDosenMK.objects.filter(
+                tahun_akademik=tahun_akademik_aktif
+            )
             .order_by("-id")
             .first()
         )
@@ -190,7 +179,9 @@ def genetika_start(request):
                 if no_improve_count > 30:
                     ga.mutation_rate = min(0.2, ga.mutation_rate * 1.2)
 
-                hard_violations = ga._count_hard_constraint_violations(current_best)
+                hard_violations = ga._count_hard_constraint_violations(
+                    current_best
+                )
                 if no_improve_count > 100 and hard_violations == 0:
                     send_ws_message(
                         "INFO: Proses dihentikan lebih awal (solusi stabil dan tanpa konflik)."
@@ -229,37 +220,46 @@ def genetika_start(request):
             )
             # === SIMPAN JADWAL KE DATABASE ===
             if best_chromosome:
-                hard_violations = ga._count_hard_constraint_violations(best_chromosome)
+                hard_violations = ga._count_hard_constraint_violations(
+                    best_chromosome
+                )
                 if hard_violations > 0:
                     send_ws_message(
                         f"Tidak disimpan: Jadwal masih memiliki {hard_violations} konflik hard constraint."
                     )
                 else:
-                    from penjadwalan.models import Jadwal
-
                     tahun_akademik_aktif = ga.tahun_akademik_aktif
-                    # Hapus jadwal lama untuk tahun akademik aktif
-                    Jadwal.objects.filter(tahun_akademik=tahun_akademik_aktif).delete()
-                    jadwal_baru_list = [
-                        Jadwal(
-                            tahun_akademik=tahun_akademik_aktif,
-                            matakuliah=gene.matakuliah,
-                            dosen=gene.dosen,
-                            kelas=gene.kelas,
-                            ruangan=gene.ruangan,
-                            hari=gene.hari,
-                            jam_mulai=gene.slot_waktu[0],
-                            jam_selesai=gene.slot_waktu[1],
-                        )
-                        for gene in best_chromosome.genes
-                    ]
-                    Jadwal.objects.bulk_create(jadwal_baru_list)
-                    send_ws_message(
-                        f"Jadwal baru berhasil disimpan: {len(jadwal_baru_list)} sesi."
+                    # Simpan ke histori JadwalGenetika
+                    JadwalGenetika.objects.create(
+                        tahun_akademik=tahun_akademik_aktif,
+                        parameter={
+                            "population_size": population_size,
+                            "crossover_rate": crossover_rate,
+                            "mutation_rate": mutation_rate,
+                            "tournament_size": tournament_size,
+                            "generations": generations,
+                            "menit_per_sks": menit_per_sks,
+                        },
+                        hasil_jadwal=[
+                            {
+                                "matakuliah": gene.matakuliah.id,
+                                "dosen": gene.dosen.id,
+                                "kelas": gene.kelas.id,
+                                "ruangan": gene.ruangan.id,
+                                "hari": gene.hari,
+                                "jam_mulai": str(gene.slot_waktu[0]),
+                                "jam_selesai": str(gene.slot_waktu[1]),
+                            }
+                            for gene in best_chromosome.genes
+                        ],
+                        status="draft",
                     )
+                    send_ws_message("Jadwal baru berhasil disimpan ke histori")
             else:
                 send_ws_message("Tidak ada solusi jadwal yang dapat disimpan.")
-            send_ws_message(f"Selesai. Fitness terbaik: {progress_state['result']}")
+            send_ws_message(
+                f"Selesai. Fitness terbaik: {progress_state['result']}"
+            )
 
         except Exception as e:
             send_ws_message(f"Error: {e}")
@@ -267,7 +267,9 @@ def genetika_start(request):
             send_ws_message("__DONE__")
             progress_state["running"] = False
             progress_state["done"] = True
-            progress_state["stop_requested"] = False  # Reset flag untuk run berikutnya
+            progress_state["stop_requested"] = (
+                False  # Reset flag untuk run berikutnya
+            )
 
     threading.Thread(target=run_genetika, daemon=True).start()
     return JsonResponse({"status": "started"})
@@ -290,7 +292,7 @@ def genetika_cancel(request):
 @login_required
 def print_jadwal_per_semester(request):
     from data.models import TahunAkademik
-    from penjadwalan.models import Jadwal
+    from penjadwalan.models import Jadwal, JadwalGenetika
 
     tahun_akademik_aktif = TahunAkademik.objects.filter(aktif=True).first()
     if not tahun_akademik_aktif:
@@ -316,7 +318,8 @@ def print_jadwal_per_semester(request):
     # Urutkan setiap semester: hari, matakuliah.nama, jam_mulai
     for semester, jadwal_list in jadwal_per_semester.items():
         jadwal_per_semester[semester] = sorted(
-            jadwal_list, key=lambda j: (j.hari, j.matakuliah.nama.lower(), j.jam_mulai)
+            jadwal_list,
+            key=lambda j: (j.hari, j.matakuliah.nama.lower(), j.jam_mulai),
         )
 
     wd1 = Jabatan.objects.filter(nama="wd1").first().dosen
@@ -332,12 +335,18 @@ def print_jadwal_per_semester(request):
         except locale.Error:
             locale.setlocale(locale.LC_TIME, "")  # fallback ke default
 
-    tanggal_cetak_str = request.GET.get("tanggal_cetak", "")
-    tanggal_obj = parse_date(tanggal_cetak_str)
-    if tanggal_obj:
-        tanggal_cetak_long = tanggal_obj.strftime("%d %B %Y")
+    # Ambil tanggal publikasi dari JadwalGenetika yang status publish
+    jadwal_genetika_publish = JadwalGenetika.objects.filter(
+        tahun_akademik=tahun_akademik_aktif, status="publish"
+    ).order_by("-tanggal_publikasi").first()
+    if jadwal_genetika_publish and jadwal_genetika_publish.tanggal_publikasi:
+        tanggal_cetak_obj = jadwal_genetika_publish.tanggal_publikasi
+        tanggal_cetak_str = tanggal_cetak_obj.strftime("%Y-%m-%d")
+        tanggal_cetak_long = tanggal_cetak_obj.strftime("%d %B %Y")
     else:
+        tanggal_cetak_str = ""
         tanggal_cetak_long = ""
+        tanggal_cetak_obj = None
 
     return render(
         request,
@@ -348,6 +357,113 @@ def print_jadwal_per_semester(request):
             "wd1": wd1,
             "tanggal_cetak": tanggal_cetak_str,
             "tanggal_cetak_long": tanggal_cetak_long,
-            "tanggal": tanggal_obj,
+            "tanggal": tanggal_cetak_obj,
         },
     )
+
+
+@login_required
+@user_passes_test(is_wd1)
+def jadwal_genetika_list(request):
+    from data.models import TahunAkademik
+
+    ta = TahunAkademik.objects.filter(aktif=True).first()
+    hasil_list = []
+    if ta:
+        hasil_list = JadwalGenetika.objects.filter(tahun_akademik=ta).order_by(
+            "-waktu_dibuat"
+        )
+    return render(
+        request,
+        "penjadwalan/jadwal_genetika_list.html",
+        {"tahun_akademik": ta, "hasil_list": hasil_list},
+    )
+
+
+@login_required
+@user_passes_test(is_wd1)
+def jadwal_genetika_detail(request, pk):
+    hasil = JadwalGenetika.objects.get(pk=pk)
+    from data.models import Dosen, Kelas, MataKuliah, Ruangan
+    from penjadwalan.models import JadwalHarian
+
+    HARI_MAP = dict(JadwalHarian.HARI_CHOICES)
+
+    jadwal_list = []
+    for item in hasil.hasil_jadwal:
+        mk = MataKuliah.objects.filter(id=item.get("matakuliah")).first()
+        dosen = Dosen.objects.filter(id=item.get("dosen")).first()
+        kelas = Kelas.objects.filter(id=item.get("kelas")).first()
+        ruangan = Ruangan.objects.filter(id=item.get("ruangan")).first()
+        hari_label = HARI_MAP.get(item.get("hari"), item.get("hari"))
+        jadwal_list.append(
+            {
+                **item,
+                "matakuliah_nama": mk.nama if mk else item.get("matakuliah"),
+                "dosen_nama": dosen.nama if dosen else item.get("dosen"),
+                "kelas_nama": kelas.nama if kelas else item.get("kelas"),
+                "ruangan_nama": ruangan.nama
+                if ruangan
+                else item.get("ruangan"),
+                "hari_label": hari_label,
+            }
+        )
+    # Urutkan berdasarkan hari, lalu nama matakuliah, lalu jam_mulai
+    jadwal_list = sorted(
+        jadwal_list,
+        key=lambda x: (
+            x.get("hari", 0),
+            str(x.get("matakuliah_nama", "")).lower(),
+            x.get("jam_mulai", ""),
+        ),
+    )
+    return render(
+        request,
+        "penjadwalan/jadwal_genetika_detail.html",
+        {"hasil": hasil, "jadwal_list": jadwal_list},
+    )
+
+
+@login_required
+@user_passes_test(is_wd1)
+@csrf_exempt
+def jadwal_genetika_publish(request, pk):
+    import json
+    from django.utils import timezone
+    from penjadwalan.models import Jadwal
+
+    if request.method != "POST":
+        return JsonResponse({"status": "invalid_method"}, status=405)
+    hasil = JadwalGenetika.objects.get(pk=pk)
+    ta = hasil.tahun_akademik
+    try:
+        data = json.loads(request.body.decode())
+        tanggal_publikasi = data.get("tanggal_publikasi")
+    except Exception:
+        tanggal_publikasi = None
+    if not tanggal_publikasi:
+        tanggal_publikasi = timezone.now().date()
+
+    # Jika status draft, lakukan publish penuh (hapus dan insert jadwal)
+    if hasil.status == "draft":
+        Jadwal.objects.filter(tahun_akademik=ta).delete()
+        for item in hasil.hasil_jadwal:
+            Jadwal.objects.create(
+                tahun_akademik=ta,
+                matakuliah_id=item.get("matakuliah"),
+                dosen_id=item.get("dosen"),
+                kelas_id=item.get("kelas"),
+                ruangan_id=item.get("ruangan"),
+                hari=item.get("hari"),
+                jam_mulai=item.get("jam_mulai"),
+                jam_selesai=item.get("jam_selesai"),
+            )
+        # Set semua hasil lain draft dan tanggal_publikasi null
+        JadwalGenetika.objects.filter(tahun_akademik=ta).exclude(pk=pk).update(
+            status="draft", tanggal_publikasi=None
+        )
+        hasil.status = "publish"
+    # Jika sudah publish, hanya update tanggal_publikasi
+    hasil.tanggal_publikasi = tanggal_publikasi
+    hasil.save()
+    return JsonResponse({"status": "ok"})

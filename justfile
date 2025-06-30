@@ -19,6 +19,12 @@ serve:
 dev:
   bunx concurrently --names "tailwind,django" -c '#f0db4f,#4B8BBE' "python manage.py tailwind start" "python manage.py runserver"
 
+devel:
+  bunx concurrently --names "tailwind,django" -c '#f0db4f,#4B8BBE' "python manage.py tailwind start" "uvicorn config.asgi:application --reload"
+
+compose:
+  podman compose down && podman compose up -d
+
 # Build for production
 build:
   python manage.py tailwind build

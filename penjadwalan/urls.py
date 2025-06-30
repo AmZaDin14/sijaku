@@ -16,4 +16,15 @@ urlpatterns = [
         views.print_jadwal_per_semester,
         name="print_jadwal_per_semester",
     ),
+    path("jadwal-genetika/", views.jadwal_genetika_list, name="jadwal_genetika_list"),
+    path(
+        "jadwal-genetika/<int:pk>/",
+        views.jadwal_genetika_detail,
+        name="jadwal_genetika_detail",
+    ),
+    path(
+        "jadwal-genetika/<int:pk>/publish/",
+        views.jadwal_genetika_publish,
+        name="jadwal_genetika_publish",
+    ),
 ]

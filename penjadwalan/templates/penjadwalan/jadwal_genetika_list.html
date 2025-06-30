@@ -1,0 +1,39 @@
+{% extends "data/dashboard/base.html" %}
+{% block dashboard_content %}
+<div class="max-w-3xl mx-auto p-4">
+  <h1 class="text-2xl font-bold mb-4">Histori Hasil Jadwal Genetika ({{ tahun_akademik }})</h1>
+  <a href="{% url 'genetika_wd1' %}" class="btn btn-secondary mb-4">Kembali ke Inisiasi Genetika</a>
+  <table class="table w-full text-sm">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Waktu Dibuat</th>
+        <th>Status</th>
+        <th>Tanggal Publikasi</th>
+        <th>Aksi</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for hasil in hasil_list %}
+      <tr>
+        <td>{{ forloop.counter }}</td>
+        <td>{{ hasil.waktu_dibuat|date:'Y-m-d H:i' }}</td>
+        <td>
+          {% if hasil.status == 'publish' %}
+            <span class="badge badge-success">Published</span>
+          {% else %}
+            <span class="badge badge-ghost">Draft</span>
+          {% endif %}
+        </td>
+        <td>{{ hasil.tanggal_publikasi|default:'-' }}</td>
+        <td>
+          <a href="{% url 'jadwal_genetika_detail' hasil.pk %}" class="btn btn-xs btn-info">Lihat Detail</a>
+        </td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="5" class="text-center">Belum ada hasil jadwal.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

@@ -1,0 +1,106 @@
+{% extends "data/dashboard/base.html" %}
+{% block dashboard_content %}
+<div class="max-w-4xl mx-auto p-4">
+  <h1 class="text-2xl font-bold mb-4">Detail Hasil Jadwal Genetika</h1>
+  <div class="mb-2 flex gap-2 items-center">
+    <a href="{% url 'jadwal_genetika_list' %}" class="btn btn-secondary">Kembali ke Daftar Hasil</a>
+    {% if hasil.status == 'draft' %}
+      <form id="publish-form" class="inline-flex gap-2 items-center" onsubmit="return publishJadwal(event, {{ hasil.pk }})">
+        <input type="date" id="tanggal-publikasi" name="tanggal_publikasi" class="input input-bordered input-sm" required>
+        <button type="submit" class="btn btn-primary">Publish Jadwal</button>
+      </form>
+    {% else %}
+      <form id="ubah-tanggal-form" class="inline-flex gap-2 items-center" onsubmit="return ubahTanggal(event, {{ hasil.pk }})">
+        <input type="date" id="tanggal-publikasi" name="tanggal_publikasi" class="input input-bordered input-sm" value="{{ hasil.tanggal_publikasi }}" required>
+        <button type="submit" class="btn btn-warning">Ganti Tanggal Publikasi</button>
+      </form>
+    {% endif %}
+  </div>
+  <div class="mb-4">
+    <b>Waktu Dibuat:</b> {{ hasil.waktu_dibuat|date:'Y-m-d H:i' }}<br>
+    <b>Status:</b> {{ hasil.get_status_display }}<br>
+    <b>Tanggal Publikasi:</b> {{ hasil.tanggal_publikasi|default:'-' }}<br>
+    <b>Parameter:</b>
+    <table class="table table-sm w-auto bg-base-200 rounded mb-2">
+      <tbody>
+        {% for key, value in hasil.parameter.items %}
+        <tr><td class="font-semibold">{{ key }}</td><td>{{ value }}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <div>
+    <b>Hasil Jadwal:</b>
+    <div class="overflow-x-auto rounded-xl shadow-lg bg-base-100 mt-2">
+      <table class="table w-full table-zebra">
+        <thead class="bg-base-200 text-base-content">
+          <tr>
+            <th>Hari</th>
+            <th>Jam</th>
+            <th>Mata Kuliah</th>
+            <th>Dosen Pengampu</th>
+            <th>Kelas</th>
+            <th>Ruangan</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for jadwal in jadwal_list %}
+          <tr>
+            <td>{{ jadwal.hari_label }}</td>
+            <td>{{ jadwal.jam_mulai }} - {{ jadwal.jam_selesai }}</td>
+            <td>{{ jadwal.matakuliah_nama }}</td>
+            <td>{{ jadwal.dosen_nama|default:"-" }}</td>
+            <td>{{ jadwal.kelas_nama }}</td>
+            <td>{{ jadwal.ruangan_nama|default:"-" }}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="6" class="text-center">Tidak ada data jadwal.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+<script>
+function publishJadwal(event, pk) {
+  event.preventDefault();
+  const tanggal = document.getElementById('tanggal-publikasi').value;
+  if (!tanggal) { alert('Tanggal publikasi wajib diisi!'); return false; }
+  fetch(`/penjadwalan/jadwal-genetika/${pk}/publish/`, {
+    method: 'POST',
+    headers: {'X-CSRFToken': '{{ csrf_token }}', 'Content-Type': 'application/json'},
+    body: JSON.stringify({tanggal_publikasi: tanggal})
+  })
+  .then(resp => resp.json())
+  .then(data => {
+    if (data.status === 'ok') {
+      alert('Jadwal berhasil dipublish!');
+      location.reload();
+    } else {
+      alert('Gagal publish: ' + (data.error || ''));
+    }
+  });
+  return false;
+}
+function ubahTanggal(event, pk) {
+  event.preventDefault();
+  const tanggal = document.getElementById('tanggal-publikasi').value;
+  if (!tanggal) { alert('Tanggal publikasi wajib diisi!'); return false; }
+  fetch(`/penjadwalan/jadwal-genetika/${pk}/publish/`, {
+    method: 'POST',
+    headers: {'X-CSRFToken': '{{ csrf_token }}', 'Content-Type': 'application/json'},
+    body: JSON.stringify({tanggal_publikasi: tanggal})
+  })
+  .then(resp => resp.json())
+  .then(data => {
+    if (data.status === 'ok') {
+      alert('Tanggal publikasi berhasil diubah!');
+      location.reload();
+    } else {
+      alert('Gagal mengubah tanggal: ' + (data.error || ''));
+    }
+  });
+  return false;
+}
+</script>
+{% endblock %}

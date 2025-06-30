@@ -60,3 +60,26 @@ class Jadwal(models.Model):
             ("tahun_akademik", "hari", "jam_mulai", "kelas"),
             ("tahun_akademik", "hari", "jam_mulai", "dosen"),
         ]
+
+
+class JadwalGenetika(models.Model):
+    STATUS_CHOICES = [
+        ("draft", "Draft"),
+        ("publish", "Publish"),
+    ]
+
+    tahun_akademik = models.ForeignKey(
+        TahunAkademik, on_delete=models.CASCADE, related_name="jadwal_genetika_set"
+    )
+    parameter = models.JSONField()
+    hasil_jadwal = models.JSONField()
+    waktu_dibuat = models.DateTimeField(auto_now_add=True)
+    status = models.CharField(
+        max_length=10,
+        choices=STATUS_CHOICES,
+        default="draft",
+    )
+    tanggal_publikasi = models.DateField(
+        null=True,
+        blank=True,
+    )
